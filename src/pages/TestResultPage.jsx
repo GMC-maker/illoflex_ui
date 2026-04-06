@@ -1,8 +1,7 @@
 import { Alert, Box, Button, Container, Paper, Stack, Typography } from "@mui/material";
-import { Link as RouterLink, useLocation, useParams } from "react-router-dom";
+import { Link as RouterLink, useLocation } from "react-router-dom";
 
 export default function TestResultPage() {
-	const { uuid } = useParams();
 	const location = useLocation();
 	const result = location.state?.result || null;
 
@@ -35,7 +34,10 @@ export default function TestResultPage() {
 							>
 								Resultado del test
 							</Typography>
-							<Typography variant="h1" sx={{ fontSize: { xs: "2.2rem", md: "3rem" } }}>
+							<Typography
+								variant="h1"
+								sx={{ fontSize: { xs: "2.2rem", md: "3rem" } }}
+							>
 								No se pudo cargar el resultado
 							</Typography>
 							<Alert severity="warning">
@@ -44,7 +46,7 @@ export default function TestResultPage() {
 							</Alert>
 							<Button
 								component={RouterLink}
-								to={`/test/${uuid}`}
+								to="/test/flujo"
 								variant="contained"
 								sx={{
 									alignSelf: "flex-start",

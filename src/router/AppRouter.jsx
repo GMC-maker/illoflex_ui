@@ -21,11 +21,11 @@ const router = createBrowserRouter([
 				element: <TestHomePage />,
 			},
 			{
-				path: "test/:uuid",
+				path: "test/flujo",
 				element: <TestFlowPage />,
 			},
 			{
-				path: "test/:uuid/resultado",
+				path: "test/resultado",
 				element: <TestResultPage />,
 			},
 		],

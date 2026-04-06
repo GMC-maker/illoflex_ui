@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Alert, Box, Button, Container, Paper, Stack, Typography } from "@mui/material";
 import { createAnonymousTest } from "../services/testService";
+import { saveTestUuid } from "../services/testSession";
 
 export default function TestHomePage() {
 	const navigate = useNavigate();
@@ -14,9 +15,10 @@ export default function TestHomePage() {
 
 		try {
 			const testData = await createAnonymousTest();
-			navigate(`/test/${testData.uuid}`);
+			saveTestUuid(testData.uuid);
+			navigate("/test/flujo");
 		} catch (error) {
-			let message = "No se pudo iniciar el test. Intentalo de nuevo.";
+			let message = "No se pudo iniciar el test. Inténtalo de nuevo.";
 
 			if (error.response && error.response.data && error.response.data.mensaje) {
 				message = error.response.data.mensaje;
@@ -78,9 +80,9 @@ export default function TestHomePage() {
 								fontSize: { xs: "1rem", md: "1.1rem" },
 							}}
 						>
-							Responderas una serie de preguntas sobre tus intereses y preferencias.
-							A partir de tus respuestas, IlloFlex calculara tu perfil vocacional y te
-							mostrara recomendaciones formativas acordes.
+							Responderás una serie de preguntas sobre tus intereses y
+							preferencias. A partir de tus respuestas, IlloFlex calculará tu
+							perfil vocacional y te mostrará recomendaciones formativas acordes.
 						</Typography>
 
 						<Box
@@ -93,16 +95,16 @@ export default function TestHomePage() {
 						>
 							<Stack spacing={1.5}>
 								<Typography variant="h3" sx={{ fontSize: "1.25rem" }}>
-									Que ocurrira al empezar
+									Qué ocurrirá al empezar
 								</Typography>
 								<Typography variant="body2" sx={{ color: "#475569" }}>
-									1. Se creara un test anonimo con identificador unico.
+									1. Se creará un test anónimo con identificador único.
 								</Typography>
 								<Typography variant="body2" sx={{ color: "#475569" }}>
-									2. Iras respondiendo las preguntas del cuestionario.
+									2. Irás respondiendo las preguntas del cuestionario.
 								</Typography>
 								<Typography variant="body2" sx={{ color: "#475569" }}>
-									3. Al finalizar, se calculara tu resultado y se mostraran
+									3. Al finalizar, se calculará tu resultado y se mostrarán
 									recomendaciones.
 								</Typography>
 							</Stack>

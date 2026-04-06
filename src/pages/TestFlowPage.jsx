@@ -10,7 +10,7 @@ import {
 	Stack,
 	Typography,
 } from "@mui/material";
-import { Link as RouterLink, useNavigate, useParams } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import {
 	createTestResponse,
 	finalizeTest,
@@ -18,10 +18,11 @@ import {
 	getTestResponses,
 	updateTestResponse,
 } from "../services/testService";
+import { getTestUuid } from "../services/testSession";
 
 export default function TestFlowPage() {
-	const { uuid } = useParams();
 	const navigate = useNavigate();
+	const uuid = getTestUuid();
 	const [questions, setQuestions] = useState([]);
 	const [responsesByQuestion, setResponsesByQuestion] = useState({});
 	const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -32,6 +33,12 @@ export default function TestFlowPage() {
 
 	useEffect(() => {
 		async function loadQuestions() {
+			if (!uuid) {
+				setErrorMessage("No se ha encontrado una sesión activa del test.");
+				setIsLoadingQuestions(false);
+				return;
+			}
+
 			setIsLoadingQuestions(true);
 			setErrorMessage("");
 
@@ -74,9 +81,7 @@ export default function TestFlowPage() {
 			}
 		}
 
-		if (uuid) {
-			loadQuestions();
-		}
+		loadQuestions();
 	}, [uuid]);
 
 	useEffect(() => {
@@ -120,7 +125,7 @@ export default function TestFlowPage() {
 	}
 
 	async function saveCurrentQuestionResponses() {
-		if (!currentQuestion) {
+		if (!currentQuestion || !uuid) {
 			return;
 		}
 
@@ -190,7 +195,7 @@ export default function TestFlowPage() {
 			if (currentQuestionIndex === totalQuestions - 1) {
 				const result = await finalizeTest(uuid);
 
-				navigate(`/test/${uuid}/resultado`, {
+				navigate("/test/resultado", {
 					state: { result },
 				});
 				return;
