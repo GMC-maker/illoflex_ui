@@ -3,6 +3,7 @@ import MainLayout from "../components/layout/MainLayout";
 import LandingPage from "../pages/LandingPage";
 import TestHomePage from "../pages/TestHomePage";
 import TestFlowPage from "../pages/TestFlowPage";
+import TestResultPage from "../pages/TestResultPage";
 import ErrorPage from "../pages/ErrorPage";
 
 const router = createBrowserRouter([
@@ -22,6 +23,10 @@ const router = createBrowserRouter([
 			{
 				path: "test/:uuid",
 				element: <TestFlowPage />,
+			},
+			{
+				path: "test/:uuid/resultado",
+				element: <TestResultPage />,
 			},
 		],
 	},

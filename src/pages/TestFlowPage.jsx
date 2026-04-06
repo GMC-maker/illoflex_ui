@@ -1,8 +1,220 @@
-import { Box, Button, Container, Paper, Stack, Typography } from "@mui/material";
-import { Link as RouterLink, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import {
+	Alert,
+	Box,
+	Button,
+	CircularProgress,
+	Container,
+	LinearProgress,
+	Paper,
+	Stack,
+	Typography,
+} from "@mui/material";
+import { Link as RouterLink, useNavigate, useParams } from "react-router-dom";
+import {
+	createTestResponse,
+	finalizeTest,
+	getTestQuestions,
+	getTestResponses,
+	updateTestResponse,
+} from "../services/testService";
 
 export default function TestFlowPage() {
 	const { uuid } = useParams();
+	const navigate = useNavigate();
+	const [questions, setQuestions] = useState([]);
+	const [responsesByQuestion, setResponsesByQuestion] = useState({});
+	const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+	const [selectedOptionIds, setSelectedOptionIds] = useState([]);
+	const [isLoadingQuestions, setIsLoadingQuestions] = useState(true);
+	const [isSavingResponses, setIsSavingResponses] = useState(false);
+	const [errorMessage, setErrorMessage] = useState("");
+
+	useEffect(() => {
+		async function loadQuestions() {
+			setIsLoadingQuestions(true);
+			setErrorMessage("");
+
+			try {
+				const [loadedQuestions, loadedResponses] = await Promise.all([
+					getTestQuestions(uuid),
+					getTestResponses(uuid),
+				]);
+
+				const groupedResponses = loadedResponses.reduce((acc, response) => {
+					if (!acc[response.id_pregunta]) {
+						acc[response.id_pregunta] = [];
+					}
+
+					acc[response.id_pregunta].push(response);
+					return acc;
+				}, {});
+
+				const firstIncompleteQuestionIndex = loadedQuestions.findIndex((question) => {
+					const savedResponses = groupedResponses[question.id_pregunta] || [];
+					return savedResponses.length < 2;
+				});
+
+				setQuestions(loadedQuestions);
+				setResponsesByQuestion(groupedResponses);
+
+				if (firstIncompleteQuestionIndex >= 0) {
+					setCurrentQuestionIndex(firstIncompleteQuestionIndex);
+				}
+			} catch (error) {
+				let message = "No se pudieron cargar las preguntas del test.";
+
+				if (error.response && error.response.data && error.response.data.mensaje) {
+					message = error.response.data.mensaje;
+				}
+
+				setErrorMessage(message);
+			} finally {
+				setIsLoadingQuestions(false);
+			}
+		}
+
+		if (uuid) {
+			loadQuestions();
+		}
+	}, [uuid]);
+
+	useEffect(() => {
+		const currentQuestion = questions[currentQuestionIndex];
+
+		if (!currentQuestion) {
+			setSelectedOptionIds([]);
+			return;
+		}
+
+		const savedResponses = responsesByQuestion[currentQuestion.id_pregunta] || [];
+		const savedOptionIds = savedResponses.map((response) => response.id_opcion);
+
+		setSelectedOptionIds(savedOptionIds);
+	}, [questions, currentQuestionIndex, responsesByQuestion]);
+
+	const currentQuestion =
+		questions.length > 0 ? questions[currentQuestionIndex] : null;
+	const totalQuestions = questions.length;
+	const currentQuestionNumber = currentQuestion ? currentQuestionIndex + 1 : 0;
+	const progressValue =
+		totalQuestions > 0 ? (currentQuestionNumber / totalQuestions) * 100 : 0;
+
+	function handleOptionToggle(optionId) {
+		const isSelected = selectedOptionIds.includes(optionId);
+
+		if (isSelected) {
+			const updatedOptionIds = selectedOptionIds.filter((id) => id !== optionId);
+			setSelectedOptionIds(updatedOptionIds);
+			setErrorMessage("");
+			return;
+		}
+
+		if (selectedOptionIds.length >= 2) {
+			setErrorMessage("Solo puedes seleccionar un máximo de 2 opciones por pregunta.");
+			return;
+		}
+
+		setErrorMessage("");
+		setSelectedOptionIds([...selectedOptionIds, optionId]);
+	}
+
+	async function saveCurrentQuestionResponses() {
+		if (!currentQuestion) {
+			return;
+		}
+
+		if (selectedOptionIds.length !== 2) {
+			setErrorMessage(
+				"Debes seleccionar exactamente 2 opciones antes de continuar.",
+			);
+			return;
+		}
+
+		setIsSavingResponses(true);
+		setErrorMessage("");
+
+		try {
+			const currentSavedResponses =
+				responsesByQuestion[currentQuestion.id_pregunta] || [];
+			const responsesToKeep = currentSavedResponses.filter((response) =>
+				selectedOptionIds.includes(response.id_opcion),
+			);
+			const responsesToReplace = currentSavedResponses.filter(
+				(response) => !selectedOptionIds.includes(response.id_opcion),
+			);
+			const optionIdsToPersist = selectedOptionIds.filter(
+				(optionId) =>
+					!currentSavedResponses.some((response) => response.id_opcion === optionId),
+			);
+			const updatedResponses = [...responsesToKeep];
+
+			for (
+				let index = 0;
+				index < responsesToReplace.length && index < optionIdsToPersist.length;
+				index += 1
+			) {
+				const updatedResponse = await updateTestResponse(
+					uuid,
+					responsesToReplace[index].id_respuesta,
+					{
+						id_opcion: optionIdsToPersist[index],
+					},
+				);
+
+				updatedResponses.push(updatedResponse);
+			}
+
+			for (
+				let index = responsesToReplace.length;
+				index < optionIdsToPersist.length;
+				index += 1
+			) {
+				const createdResponse = await createTestResponse(uuid, {
+					id_pregunta: currentQuestion.id_pregunta,
+					id_opcion: optionIdsToPersist[index],
+				});
+
+				updatedResponses.push(createdResponse);
+			}
+
+			const normalizedResponses = updatedResponses.sort(
+				(left, right) => left.id_opcion - right.id_opcion,
+			);
+
+			setResponsesByQuestion((previousState) => ({
+				...previousState,
+				[currentQuestion.id_pregunta]: normalizedResponses,
+			}));
+
+			if (currentQuestionIndex === totalQuestions - 1) {
+				const result = await finalizeTest(uuid);
+
+				navigate(`/test/${uuid}/resultado`, {
+					state: { result },
+				});
+				return;
+			}
+
+			setCurrentQuestionIndex(currentQuestionIndex + 1);
+		} catch (error) {
+			let message = "No se pudieron guardar las respuestas.";
+
+			if (error.response && error.response.data && error.response.data.mensaje) {
+				message = error.response.data.mensaje;
+			}
+
+			setErrorMessage(message);
+		} finally {
+			setIsSavingResponses(false);
+		}
+	}
+
+	function goToPreviousQuestion() {
+		if (currentQuestionIndex > 0) {
+			setCurrentQuestionIndex(currentQuestionIndex - 1);
+		}
+	}
 
 	return (
 		<Box
@@ -27,6 +239,18 @@ export default function TestFlowPage() {
 				>
 					<Stack spacing={3}>
 						<Typography
+							variant="body2"
+							sx={{
+								color: "#64748b",
+								fontStyle: "italic",
+							}}
+						>
+							Este test es una orientación para ayudarte a explorar caminos
+							formativos, pero tu futuro también puede construirse desde lo que te
+							apasiona y te motiva de verdad.
+						</Typography>
+
+						<Typography
 							variant="overline"
 							sx={{
 								color: "#1d4ed8",
@@ -34,53 +258,113 @@ export default function TestFlowPage() {
 								letterSpacing: "0.08em",
 							}}
 						>
-							Flujo del test
+							Test vocacional
 						</Typography>
 
-						<Typography
-							variant="h1"
-							sx={{
-								fontSize: { xs: "2.2rem", md: "3.2rem" },
-								lineHeight: 1.08,
-							}}
-						>
-							El test anonimo ya se ha creado correctamente
-						</Typography>
+						{!isLoadingQuestions && currentQuestion && (
+							<Stack spacing={1}>
+								<Box
+									sx={{
+										display: "flex",
+										justifyContent: "space-between",
+										alignItems: "center",
+										gap: 2,
+									}}
+								>
+									<Typography variant="body2" sx={{ color: "#475569" }}>
+										Pregunta {currentQuestionNumber} de {totalQuestions}
+									</Typography>
+									<Typography variant="body2" sx={{ color: "#64748b" }}>
+										{Math.round(progressValue)}%
+									</Typography>
+								</Box>
+								<LinearProgress
+									variant="determinate"
+									value={progressValue}
+									sx={{
+										height: 8,
+										borderRadius: 999,
+										backgroundColor: "#dbeafe",
+										"& .MuiLinearProgress-bar": {
+											borderRadius: 999,
+											backgroundColor: "#1d4ed8",
+										},
+									}}
+								/>
+								<Typography variant="body2" sx={{ color: "#64748b" }}>
+									Selecciona 2 opciones de las 4 disponibles.
+								</Typography>
+							</Stack>
+						)}
 
-						<Typography variant="body1" sx={{ color: "#475569" }}>
-							Este paso confirma que el frontend ya puede crear un test real contra el
-							backend. El siguiente bloque sera cargar y recorrer las preguntas del
-							cuestionario.
-						</Typography>
+						{isLoadingQuestions && (
+							<Stack spacing={2} alignItems="center" sx={{ py: 4 }}>
+								<CircularProgress />
+								<Typography variant="body1" sx={{ color: "#475569" }}>
+									Cargando preguntas del test...
+								</Typography>
+							</Stack>
+						)}
 
-						<Box
-							sx={{
-								p: 3,
-								borderRadius: 3,
-								border: "1px solid #dbe2f0",
-								backgroundColor: "#f8fbff",
-							}}
-						>
-							<Typography variant="h3" sx={{ fontSize: "1.2rem", mb: 1 }}>
-								UUID del test
-							</Typography>
-							<Typography
-								variant="body2"
-								sx={{
-									color: "#334155",
-									wordBreak: "break-word",
-									fontFamily: "monospace",
-								}}
-							>
-								{uuid}
-							</Typography>
-						</Box>
+						{!isLoadingQuestions && errorMessage !== "" && (
+							<Alert severity="error">{errorMessage}</Alert>
+						)}
+
+						{!isLoadingQuestions && currentQuestion && (
+							<>
+								<Typography
+									variant="h1"
+									sx={{
+										fontSize: { xs: "2.2rem", md: "3.2rem" },
+										lineHeight: 1.08,
+									}}
+								>
+									{currentQuestion.enunciado}
+								</Typography>
+
+								<Box
+									sx={{
+										p: 3,
+										borderRadius: 3,
+										border: "1px solid #dbe2f0",
+										backgroundColor: "#f8fbff",
+									}}
+								>
+									<Stack spacing={1.5}>
+										{currentQuestion.opciones.map((option) => (
+											<Box
+												key={option.id_opcion}
+												onClick={() => handleOptionToggle(option.id_opcion)}
+												sx={{
+													p: 2,
+													borderRadius: 2,
+													border: selectedOptionIds.includes(option.id_opcion)
+														? "2px solid #1d4ed8"
+														: "1px solid #dbe2f0",
+													backgroundColor: selectedOptionIds.includes(
+														option.id_opcion,
+													)
+														? "#eaf1ff"
+														: "#ffffff",
+													cursor: "pointer",
+													transition: "all 0.2s ease",
+												}}
+											>
+												<Typography variant="body2" sx={{ color: "#334155" }}>
+													{option.texto}
+												</Typography>
+											</Box>
+										))}
+									</Stack>
+								</Box>
+							</>
+						)}
 
 						<Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
 							<Button
-								component={RouterLink}
-								to="/test"
+								onClick={goToPreviousQuestion}
 								variant="outlined"
+								disabled={currentQuestionIndex === 0 || isSavingResponses}
 								sx={{
 									alignSelf: "flex-start",
 									textTransform: "none",
@@ -89,10 +373,11 @@ export default function TestFlowPage() {
 									px: 3,
 								}}
 							>
-								Volver
+								Anterior
 							</Button>
 							<Button
-								disabled
+								onClick={saveCurrentQuestionResponses}
+								disabled={isSavingResponses || !currentQuestion}
 								variant="contained"
 								sx={{
 									alignSelf: "flex-start",
@@ -102,9 +387,31 @@ export default function TestFlowPage() {
 									px: 3,
 									backgroundColor: "#1d4ed8",
 									boxShadow: "none",
+									"&:hover": {
+										backgroundColor: "#1e40af",
+										boxShadow: "none",
+									},
 								}}
 							>
-								Proximamente: cargar preguntas
+								{isSavingResponses
+									? currentQuestionIndex === totalQuestions - 1
+										? "Finalizando..."
+										: "Guardando..."
+									: currentQuestionIndex === totalQuestions - 1
+										? "Finalizar test"
+										: "Guardar y continuar"}
+							</Button>
+							<Button
+								component={RouterLink}
+								to="/test"
+								variant="text"
+								sx={{
+									alignSelf: "flex-start",
+									textTransform: "none",
+									fontWeight: 600,
+								}}
+							>
+								Salir del test
 							</Button>
 						</Stack>
 					</Stack>
