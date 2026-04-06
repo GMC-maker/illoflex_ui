@@ -100,7 +100,13 @@ export default function RiasecDonutChart({ normalizedScores, principalProfileNam
 				</Box>
 			</Box>
 
-			<Stack spacing={1.25}>
+			<Box
+				sx={{
+					display: "grid",
+					gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" },
+					gap: 1.25,
+				}}
+			>
 				{segments.map((segment) => (
 					<Box
 						key={segment.code}
@@ -134,7 +140,7 @@ export default function RiasecDonutChart({ normalizedScores, principalProfileNam
 						</Typography>
 					</Box>
 				))}
-			</Stack>
+			</Box>
 		</Stack>
 	);
 }
