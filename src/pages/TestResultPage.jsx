@@ -1,5 +1,6 @@
 import { Alert, Box, Button, Container, Paper, Stack, Typography } from "@mui/material";
 import { Link as RouterLink, useLocation } from "react-router-dom";
+import RiasecDonutChart from "../components/results/RiasecDonutChart";
 
 export default function TestResultPage() {
 	const location = useLocation();
@@ -109,9 +110,24 @@ export default function TestResultPage() {
 							Tu perfil principal es {result.perfil_principal.nombre}
 						</Typography>
 
-						<Typography variant="body1" sx={{ color: "#475569" }}>
-							{result.perfil_principal.descripcion}
-						</Typography>
+						<Box
+							sx={{
+								p: { xs: 3, md: 4 },
+								borderRadius: 3,
+								border: "1px solid #dbe2f0",
+								backgroundColor: "#ffffff",
+							}}
+						>
+							<Stack spacing={3}>
+								<RiasecDonutChart
+									normalizedScores={result.puntuaciones?.normalizadas}
+									principalProfileName={result.perfil_principal.nombre}
+								/>
+								<Typography variant="body1" sx={{ color: "#475569" }}>
+									{result.perfil_principal.descripcion}
+								</Typography>
+							</Stack>
+						</Box>
 
 						{result.perfil_secundario && (
 							<Box
