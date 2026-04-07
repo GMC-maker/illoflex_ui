@@ -250,9 +250,8 @@ export default function TestFlowPage() {
 								fontStyle: "italic",
 							}}
 						>
-							Este test es una orientación para ayudarte a explorar caminos
-							formativos, pero tu futuro también puede construirse desde lo que te
-							apasiona y te motiva de verdad.
+							“La única forma de hacer un gran trabajo es amar lo que haces.”
+							- Steve Jobs
 						</Typography>
 
 						<Typography

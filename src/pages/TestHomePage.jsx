@@ -80,9 +80,8 @@ export default function TestHomePage() {
 								fontSize: { xs: "1rem", md: "1.1rem" },
 							}}
 						>
-							Responderás una serie de preguntas sobre tus intereses y
-							preferencias. A partir de tus respuestas, IlloFlex calculará tu
-							perfil vocacional y te mostrará recomendaciones formativas acordes.
+							Responde unas preguntas sobre lo que te gusta y cómo prefieres trabajar.
+							IlloFlex analizará tus respuestas y te ayudará a descubrir opciones formativas que encajan contigo.
 						</Typography>
 
 						<Box
