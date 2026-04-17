@@ -152,22 +152,62 @@ export default function TestResultPage() {
 							</Box>
 						)}
 
-						<Button
-							component={RouterLink}
-							to="/"
-							variant="contained"
-							sx={{
-								alignSelf: "flex-start",
-								textTransform: "none",
-								fontWeight: 600,
-								borderRadius: 999,
-								px: 3,
-								backgroundColor: "#1d4ed8",
-								boxShadow: "none",
-							}}
-						>
-							Volver al inicio
-						</Button>
+						{result.perfil_terciario && (
+							<Box
+								sx={{
+									p: 3,
+									borderRadius: 3,
+									border: "1px solid #dbe2f0",
+									backgroundColor: "#ffffff",
+								}}
+							>
+								<Stack spacing={1}>
+									<Typography variant="h3" sx={{ fontSize: "1.25rem" }}>
+										Perfil terciario
+									</Typography>
+									<Typography variant="body1" sx={{ color: "#334155" }}>
+										{result.perfil_terciario.nombre}
+									</Typography>
+									<Typography variant="body2" sx={{ color: "#475569" }}>
+										{result.perfil_terciario.descripcion}
+									</Typography>
+								</Stack>
+							</Box>
+						)}
+
+						<Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+							{/* Lleva a una pantalla separada para no alargar el resultado RIASEC. */}
+							<Button
+								component={RouterLink}
+								to="/test/recomendaciones"
+								state={{ result }}
+								variant="contained"
+								sx={{
+									textTransform: "none",
+									fontWeight: 600,
+									borderRadius: 999,
+									px: 3,
+									backgroundColor: "#1d4ed8",
+									boxShadow: "none",
+								}}
+							>
+								Ver recomendaciones de ciclos
+							</Button>
+
+							<Button
+								component={RouterLink}
+								to="/"
+								variant="outlined"
+								sx={{
+									textTransform: "none",
+									fontWeight: 600,
+									borderRadius: 999,
+									px: 3,
+								}}
+							>
+								Volver al inicio
+							</Button>
+						</Stack>
 					</Stack>
 				</Paper>
 			</Container>
