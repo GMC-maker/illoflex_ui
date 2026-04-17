@@ -4,6 +4,7 @@ import LandingPage from "../pages/LandingPage";
 import TestHomePage from "../pages/TestHomePage";
 import TestFlowPage from "../pages/TestFlowPage";
 import TestResultPage from "../pages/TestResultPage";
+import TestRecommendationsPage from "../pages/TestRecommendationsPage";
 import ErrorPage from "../pages/ErrorPage";
 
 const router = createBrowserRouter([
@@ -27,6 +28,10 @@ const router = createBrowserRouter([
 			{
 				path: "test/resultado",
 				element: <TestResultPage />,
+			},
+			{
+				path: "test/recomendaciones",
+				element: <TestRecommendationsPage />,
 			},
 		],
 	},

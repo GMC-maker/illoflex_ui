@@ -175,22 +175,39 @@ export default function TestResultPage() {
 							</Box>
 						)}
 
-						<Button
-							component={RouterLink}
-							to="/"
-							variant="contained"
-							sx={{
-								alignSelf: "flex-start",
-								textTransform: "none",
-								fontWeight: 600,
-								borderRadius: 999,
-								px: 3,
-								backgroundColor: "#1d4ed8",
-								boxShadow: "none",
-							}}
-						>
-							Volver al inicio
-						</Button>
+						<Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+							{/* Lleva a una pantalla separada para no alargar el resultado RIASEC. */}
+							<Button
+								component={RouterLink}
+								to="/test/recomendaciones"
+								state={{ result }}
+								variant="contained"
+								sx={{
+									textTransform: "none",
+									fontWeight: 600,
+									borderRadius: 999,
+									px: 3,
+									backgroundColor: "#1d4ed8",
+									boxShadow: "none",
+								}}
+							>
+								Ver recomendaciones de ciclos
+							</Button>
+
+							<Button
+								component={RouterLink}
+								to="/"
+								variant="outlined"
+								sx={{
+									textTransform: "none",
+									fontWeight: 600,
+									borderRadius: 999,
+									px: 3,
+								}}
+							>
+								Volver al inicio
+							</Button>
+						</Stack>
 					</Stack>
 				</Paper>
 			</Container>
