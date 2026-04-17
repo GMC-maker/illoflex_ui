@@ -152,6 +152,29 @@ export default function TestResultPage() {
 							</Box>
 						)}
 
+						{result.perfil_terciario && (
+							<Box
+								sx={{
+									p: 3,
+									borderRadius: 3,
+									border: "1px solid #dbe2f0",
+									backgroundColor: "#ffffff",
+								}}
+							>
+								<Stack spacing={1}>
+									<Typography variant="h3" sx={{ fontSize: "1.25rem" }}>
+										Perfil terciario
+									</Typography>
+									<Typography variant="body1" sx={{ color: "#334155" }}>
+										{result.perfil_terciario.nombre}
+									</Typography>
+									<Typography variant="body2" sx={{ color: "#475569" }}>
+										{result.perfil_terciario.descripcion}
+									</Typography>
+								</Stack>
+							</Box>
+						)}
+
 						<Button
 							component={RouterLink}
 							to="/"
