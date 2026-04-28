@@ -30,6 +30,10 @@ const router = createBrowserRouter([
 				element: <TestResultPage />,
 			},
 			{
+				path: "tus-resultados/:token",
+				element: <TestResultPage />,
+			},
+			{
 				path: "test/recomendaciones",
 				element: <TestRecommendationsPage />,
 			},
