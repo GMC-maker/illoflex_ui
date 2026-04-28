@@ -196,7 +196,8 @@ export default function TestFlowPage() {
 				const result = await finalizeTest(uuid);
 
 				navigate("/test/resultado", {
-					state: { result },
+					// Se envia tambien el UUID para permitir generar un enlace temporal.
+					state: { result, testUuid: uuid },
 				});
 				return;
 			}
