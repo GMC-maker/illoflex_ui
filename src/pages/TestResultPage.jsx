@@ -105,9 +105,7 @@ export default function TestResultPage() {
 			const linkData = await createResultLink(testUuid, email);
 
 			setGeneratedLinkData(linkData);
-			setLinkSuccessMessage(
-				"Enlace temporal generado correctamente. En esta fase se muestra para pruebas.",
-			);
+			setLinkSuccessMessage("Enlace temporal generado correctamente.");
 		} catch (error) {
 			let message = "No se pudo generar el enlace temporal.";
 
@@ -336,12 +334,11 @@ export default function TestResultPage() {
 							>
 								<Stack spacing={2}>
 									<Typography variant="h3" sx={{ fontSize: "1.25rem" }}>
-										Guardar enlace temporal del resultado
+										Guardar tus resultados
 									</Typography>
 									<Typography variant="body2" sx={{ color: "#475569" }}>
 										Introduce tu correo para generar un enlace temporal con el que
-										recuperar este resultado mas adelante. De momento el enlace se
-										muestra en pantalla para pruebas.
+										podras volver a consultar este resultado mas adelante.
 									</Typography>
 
 									<Box
@@ -396,7 +393,7 @@ export default function TestResultPage() {
 										>
 											<Stack spacing={1}>
 												<Typography variant="body2" sx={{ color: "#334155" }}>
-													Enlace temporal listo para copiar
+													Ya puedes copiar tu enlace de recuperacion
 												</Typography>
 
 												<Button
