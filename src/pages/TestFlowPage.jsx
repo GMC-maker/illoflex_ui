@@ -400,11 +400,11 @@ export default function TestFlowPage() {
 							>
 								{isSavingResponses
 									? currentQuestionIndex === totalQuestions - 1
-										? "Finalizando..."
+										? "Preparando resultados..."
 										: "Guardando..."
 									: currentQuestionIndex === totalQuestions - 1
-										? "Finalizar test"
-										: "Guardar y continuar"}
+										? "Ver resultados"
+										: "Continuar"}
 							</Button>
 							<Button
 								component={RouterLink}
@@ -413,7 +413,12 @@ export default function TestFlowPage() {
 								sx={{
 									alignSelf: "flex-start",
 									textTransform: "none",
-									fontWeight: 600,
+									fontWeight: 500,
+									color: "#94a3b8",
+									"&:hover": {
+										backgroundColor: "transparent",
+										color: "#64748b",
+									},
 								}}
 							>
 								Salir del test
