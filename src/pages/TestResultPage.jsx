@@ -1,10 +1,157 @@
-import { Alert, Box, Button, Container, Paper, Stack, Typography } from "@mui/material";
-import { Link as RouterLink, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import {
+	Alert,
+	Box,
+	Button,
+	CircularProgress,
+	Container,
+	Paper,
+	Stack,
+	TextField,
+	Typography,
+} from "@mui/material";
+import { Link as RouterLink, useLocation, useParams } from "react-router-dom";
 import RiasecDonutChart from "../components/results/RiasecDonutChart";
+import { createResultLink, getResultByToken } from "../services/testService";
 
 export default function TestResultPage() {
 	const location = useLocation();
-	const result = location.state?.result || null;
+	const { token } = useParams();
+	const stateResult = location.state?.result || null;
+	const testUuid = location.state?.testUuid || null;
+	const [result, setResult] = useState(stateResult);
+	const [isLoadingResult, setIsLoadingResult] = useState(
+		Boolean(token && !stateResult),
+	);
+	const [resultErrorMessage, setResultErrorMessage] = useState("");
+	const [email, setEmail] = useState("");
+	const [isSendingLink, setIsSendingLink] = useState(false);
+	const [linkSuccessMessage, setLinkSuccessMessage] = useState("");
+	const [linkErrorMessage, setLinkErrorMessage] = useState("");
+	const [generatedLinkData, setGeneratedLinkData] = useState(null);
+	const [copySuccessMessage, setCopySuccessMessage] = useState("");
+
+	useEffect(() => {
+		if (!token) {
+			return;
+		}
+
+		if (stateResult) {
+			setResult(stateResult);
+			setIsLoadingResult(false);
+			setResultErrorMessage("");
+			return;
+		}
+
+		async function loadResultByToken() {
+			setIsLoadingResult(true);
+			setResultErrorMessage("");
+
+			try {
+				const recoveredResult = await getResultByToken(token);
+				setResult(recoveredResult);
+			} catch (error) {
+				let message = "No se pudo recuperar el resultado desde el enlace temporal.";
+
+				if (error.response && error.response.data && error.response.data.mensaje) {
+					message = error.response.data.mensaje;
+				}
+
+				setResult(null);
+				setResultErrorMessage(message);
+			} finally {
+				setIsLoadingResult(false);
+			}
+		}
+
+		loadResultByToken();
+	}, [token, stateResult]);
+
+	async function handleCopyTemporaryLink() {
+		if (!generatedLinkData?.token) {
+			return;
+		}
+
+		const temporaryLink = `${window.location.origin}/tus-resultados/${generatedLinkData.token}`;
+
+		try {
+			await navigator.clipboard.writeText(temporaryLink);
+			setCopySuccessMessage("Enlace copiado correctamente.");
+			setLinkErrorMessage("");
+		} catch (error) {
+			setLinkErrorMessage("No se pudo copiar el enlace temporal.");
+		}
+	}
+
+	async function handleCreateTemporaryLink(event) {
+		event.preventDefault();
+
+		if (!testUuid) {
+			setLinkErrorMessage(
+				"No se ha encontrado el identificador del test para generar el enlace.",
+			);
+			setLinkSuccessMessage("");
+			setGeneratedLinkData(null);
+			return;
+		}
+
+		setIsSendingLink(true);
+		setLinkErrorMessage("");
+		setLinkSuccessMessage("");
+		setCopySuccessMessage("");
+		setGeneratedLinkData(null);
+
+		try {
+			const linkData = await createResultLink(testUuid, email);
+
+			setGeneratedLinkData(linkData);
+			setLinkSuccessMessage("Enlace temporal generado correctamente.");
+		} catch (error) {
+			let message = "No se pudo generar el enlace temporal.";
+
+			if (error.response && error.response.data && error.response.data.mensaje) {
+				message = error.response.data.mensaje;
+			}
+
+			setLinkErrorMessage(message);
+		} finally {
+			setIsSendingLink(false);
+		}
+	}
+
+	if (isLoadingResult) {
+		return (
+			<Box
+				sx={{
+					minHeight: "calc(100vh - 64px)",
+					display: "flex",
+					alignItems: "center",
+					background:
+						"linear-gradient(180deg, #f8fbff 0%, #eef4ff 50%, #f6f7fb 100%)",
+					py: 8,
+				}}
+			>
+				<Container maxWidth="md">
+					<Paper
+						elevation={0}
+						sx={{
+							p: { xs: 4, md: 6 },
+							borderRadius: 4,
+							border: "1px solid #dbe2f0",
+							backgroundColor: "rgba(255, 255, 255, 0.92)",
+						}}
+					>
+						<Stack spacing={2} alignItems="center">
+							<CircularProgress />
+							<Typography variant="body1" sx={{ color: "#475569" }}>
+								Cargando resultado desde el enlace temporal...
+							</Typography>
+						</Stack>
+					</Paper>
+				</Container>
+			</Box>
+		);
+	}
 
 	if (!result) {
 		return (
@@ -42,8 +189,9 @@ export default function TestResultPage() {
 								No se pudo cargar el resultado
 							</Typography>
 							<Alert severity="warning">
-								No hemos encontrado el resultado en esta navegación. Más adelante
-								conectaremos una recuperación directa del resultado por UUID.
+								{resultErrorMessage !== ""
+									? resultErrorMessage
+									: "No hemos encontrado el resultado en esta navegacion."}
 							</Alert>
 							<Button
 								component={RouterLink}
@@ -92,8 +240,8 @@ export default function TestResultPage() {
 							variant="body2"
 							sx={{ color: "#64748b", fontStyle: "italic" }}
 						>
-							Este resultado es una orientación inicial para ayudarte a seguir
-							explorando posibilidades académicas y profesionales.
+							Este resultado es una orientacion inicial para ayudarte a seguir
+							explorando posibilidades academicas y profesionales.
 						</Typography>
 
 						<Typography
@@ -175,8 +323,103 @@ export default function TestResultPage() {
 							</Box>
 						)}
 
+						{testUuid && (
+							<Box
+								sx={{
+									p: 3,
+									borderRadius: 3,
+									border: "1px solid #dbe2f0",
+									backgroundColor: "#f8fbff",
+								}}
+							>
+								<Stack spacing={2}>
+									<Typography variant="h3" sx={{ fontSize: "1.25rem" }}>
+										Guardar tus resultados
+									</Typography>
+									<Typography variant="body2" sx={{ color: "#475569" }}>
+										Introduce tu correo para generar un enlace temporal con el que
+										podras volver a consultar este resultado mas adelante.
+									</Typography>
+
+									<Box
+										component="form"
+										onSubmit={handleCreateTemporaryLink}
+										sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+									>
+										<TextField
+											label="Correo electronico"
+											type="email"
+											value={email}
+											onChange={(event) => setEmail(event.target.value)}
+											placeholder="tucorreo@ejemplo.com"
+											fullWidth
+											required
+										/>
+
+										<Button
+											type="submit"
+											variant="outlined"
+											disabled={isSendingLink || !testUuid}
+											sx={{
+												alignSelf: "flex-start",
+												textTransform: "none",
+												fontWeight: 600,
+												borderRadius: 999,
+												px: 3,
+											}}
+										>
+											{isSendingLink
+												? "Generando enlace..."
+												: "Generar enlace temporal"}
+										</Button>
+									</Box>
+
+									{linkSuccessMessage !== "" && (
+										<Alert severity="success">{linkSuccessMessage}</Alert>
+									)}
+
+									{linkErrorMessage !== "" && (
+										<Alert severity="error">{linkErrorMessage}</Alert>
+									)}
+
+									{generatedLinkData && (
+										<Box
+											sx={{
+												p: 2,
+												borderRadius: 2,
+												border: "1px dashed #93c5fd",
+												backgroundColor: "#ffffff",
+											}}
+										>
+											<Stack spacing={1}>
+												<Typography variant="body2" sx={{ color: "#334155" }}>
+													Ya puedes copiar tu enlace de recuperacion
+												</Typography>
+
+												<Button
+													onClick={handleCopyTemporaryLink}
+													variant="text"
+													sx={{
+														alignSelf: "flex-start",
+														textTransform: "none",
+														fontWeight: 600,
+														px: 0,
+													}}
+												>
+													Copiar enlace
+												</Button>
+											</Stack>
+										</Box>
+									)}
+
+									{copySuccessMessage !== "" && (
+										<Alert severity="success">{copySuccessMessage}</Alert>
+									)}
+								</Stack>
+							</Box>
+						)}
+
 						<Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
-							{/* Lleva a una pantalla separada para no alargar el resultado RIASEC. */}
 							<Button
 								component={RouterLink}
 								to="/test/recomendaciones"
