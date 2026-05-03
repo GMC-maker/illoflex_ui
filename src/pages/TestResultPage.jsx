@@ -172,7 +172,7 @@ export default function TestResultPage() {
 					>
 						<Stack spacing={2} alignItems="center">
 							<CircularProgress />
-							<Typography variant="body1" sx={{ color: "#475569" }}>
+							<Typography variant="body1" sx={{ color: "#475569"}}>
 								Cargando resultado del test...
 							</Typography>
 						</Stack>
@@ -282,9 +282,10 @@ export default function TestResultPage() {
 
 						<Typography
 							variant="h1"
-							sx={{ fontSize: { xs: "2.2rem", md: "3rem" }, lineHeight: 1.08 }}
+							sx={{ fontSize: { xs: "2rem", md: "2.5rem" }, lineHeight: 1.25 }}
 						>
-							Tu perfil principal se orienta hacia lo {result.perfil_principal.nombre}
+							Tu perfil principal se orienta hacia lo 
+							<br /> {result.perfil_principal.nombre}
 						</Typography>
 
 						<Box
@@ -300,57 +301,76 @@ export default function TestResultPage() {
 									normalizedScores={result.puntuaciones?.normalizadas}
 									principalProfileName={result.perfil_principal.nombre}
 								/>
-								<Typography variant="body1" sx={{ color: "#475569" }}>
+								<Typography variant="body1" sx={{ color: "#475569",  textAlign: "justify" }}>
 									{result.perfil_principal.descripcion}
 								</Typography>
 							</Stack>
 						</Box>
 
-						{result.perfil_secundario && (
+												{(result.perfil_secundario || result.perfil_terciario) && (
 							<Box
 								sx={{
-									p: 3,
-									borderRadius: 3,
-									border: "1px solid #dbe2f0",
-									backgroundColor: "#f8fbff",
+									display: "grid",
+									gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+									gap: 2,
 								}}
 							>
-								<Stack spacing={1}>
-									<Typography variant="h3" sx={{ fontSize: "1.25rem" }}>
-										Perfil secundario
-									</Typography>
-									<Typography variant="body1" sx={{ color: "#334155" }}>
-										{result.perfil_secundario.nombre}
-									</Typography>
-									<Typography variant="body2" sx={{ color: "#475569" }}>
-										{result.perfil_secundario.descripcion}
-									</Typography>
-								</Stack>
+								{result.perfil_secundario && (
+									<Box
+										sx={{
+											p: 3,
+											borderRadius: 3,
+											border: "1px solid #dbe2f0",
+											backgroundColor: "#f8fbff",
+											height: "100%",
+										}}
+									>
+										<Stack spacing={1}>
+											<Typography variant="h3" sx={{ fontSize: "1.25rem" }}>
+												Perfil secundario
+											</Typography>
+											<Typography
+												variant="body1"
+												sx={{ color: "#334155", fontWeight: 600 }}
+											>
+												{result.perfil_secundario.nombre}
+											</Typography>
+											<Typography variant="body2" sx={{ color: "#475569", textAlign: "justify" }}>
+												{result.perfil_secundario.descripcion}
+											</Typography>
+										</Stack>
+									</Box>
+								)}
+
+								{result.perfil_terciario && (
+									<Box
+										sx={{
+											p: 3,
+											borderRadius: 3,
+											border: "1px solid #dbe2f0",
+											backgroundColor: "#ffffff",
+											height: "100%",
+										}}
+									>
+										<Stack spacing={1}>
+											<Typography variant="h3" sx={{ fontSize: "1.25rem" }}>
+												Perfil terciario
+											</Typography>
+											<Typography
+												variant="body1"
+												sx={{ color: "#334155", fontWeight: 600 }}
+											>
+												{result.perfil_terciario.nombre}
+											</Typography>
+											<Typography variant="body2" sx={{ color: "#475569",  textAlign: "justify"}}>
+												{result.perfil_terciario.descripcion}
+											</Typography>
+										</Stack>
+									</Box>
+								)}
 							</Box>
 						)}
 
-						{result.perfil_terciario && (
-							<Box
-								sx={{
-									p: 3,
-									borderRadius: 3,
-									border: "1px solid #dbe2f0",
-									backgroundColor: "#ffffff",
-								}}
-							>
-								<Stack spacing={1}>
-									<Typography variant="h3" sx={{ fontSize: "1.25rem" }}>
-										Perfil terciario
-									</Typography>
-									<Typography variant="body1" sx={{ color: "#334155" }}>
-										{result.perfil_terciario.nombre}
-									</Typography>
-									<Typography variant="body2" sx={{ color: "#475569" }}>
-										{result.perfil_terciario.descripcion}
-									</Typography>
-								</Stack>
-							</Box>
-						)}
 
 						{testUuid && (
 							<Box
@@ -365,7 +385,7 @@ export default function TestResultPage() {
 									<Typography variant="h3" sx={{ fontSize: "1.25rem" }}>
 										Guardar tus resultados
 									</Typography>
-									<Typography variant="body2" sx={{ color: "#475569" }}>
+									<Typography variant="body2" sx={{ color: "#475569",  textAlign: "justify"}}>
 										Introduce tu correo para generar un enlace temporal con el que
 										podras volver a consultar este resultado mas adelante.
 									</Typography>
