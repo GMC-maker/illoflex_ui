@@ -12,7 +12,11 @@ import {
 } from "@mui/material";
 import { Link as RouterLink, useLocation, useParams } from "react-router-dom";
 import RiasecDonutChart from "../components/results/RiasecDonutChart";
-import { createResultLink, getResultByToken } from "../services/testService";
+import {
+	createResultLink,
+	getResultByToken,
+	getTestResult,
+} from "../services/testService";
 
 export default function TestResultPage() {
 	const location = useLocation();
@@ -32,40 +36,65 @@ export default function TestResultPage() {
 	const [copySuccessMessage, setCopySuccessMessage] = useState("");
 
 	useEffect(() => {
-		if (!token) {
-			return;
-		}
+		async function loadResult() {
+			if (token) {
+				if (stateResult) {
+					setResult(stateResult);
+					setIsLoadingResult(false);
+					setResultErrorMessage("");
+					return;
+				}
 
-		if (stateResult) {
-			setResult(stateResult);
-			setIsLoadingResult(false);
-			setResultErrorMessage("");
-			return;
-		}
+				setIsLoadingResult(true);
+				setResultErrorMessage("");
 
-		async function loadResultByToken() {
+				try {
+					const recoveredResult = await getResultByToken(token);
+					setResult(recoveredResult);
+				} catch (error) {
+					let message =
+						"No se pudo recuperar el resultado desde el enlace temporal.";
+
+					if (error.response && error.response.data && error.response.data.mensaje) {
+						message = error.response.data.mensaje;
+					}
+
+					setResult(null);
+					setResultErrorMessage(message);
+				} finally {
+					setIsLoadingResult(false);
+				}
+
+				return;
+			}
+
+			if (!testUuid) {
+				return;
+			}
+
 			setIsLoadingResult(true);
 			setResultErrorMessage("");
 
 			try {
-				const recoveredResult = await getResultByToken(token);
-				setResult(recoveredResult);
+				const refreshedResult = await getTestResult(testUuid);
+				setResult(refreshedResult);
 			} catch (error) {
-				let message = "No se pudo recuperar el resultado desde el enlace temporal.";
+				let message = "No se pudo recuperar el resultado del test.";
 
 				if (error.response && error.response.data && error.response.data.mensaje) {
 					message = error.response.data.mensaje;
 				}
 
-				setResult(null);
+				setResult(stateResult);
 				setResultErrorMessage(message);
 			} finally {
 				setIsLoadingResult(false);
 			}
 		}
 
-		loadResultByToken();
-	}, [token, stateResult]);
+		loadResult();
+	}, [token, testUuid, stateResult]);
+
 
 	async function handleCopyTemporaryLink() {
 		if (!generatedLinkData?.token) {
@@ -144,7 +173,7 @@ export default function TestResultPage() {
 						<Stack spacing={2} alignItems="center">
 							<CircularProgress />
 							<Typography variant="body1" sx={{ color: "#475569" }}>
-								Cargando resultado desde el enlace temporal...
+								Cargando resultado del test...
 							</Typography>
 						</Stack>
 					</Paper>

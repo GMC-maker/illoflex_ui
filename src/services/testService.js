@@ -29,6 +29,12 @@ export async function finalizeTest(uuid) {
 	const response = await api.post(`/tests/${uuid}/finalizar`);
 	return response.data.datos;
 }
+
+export async function getTestResult(uuid) {
+	const response = await api.get(`/tests/${uuid}/resultado`);
+	return response.data.datos;
+}
+
 export async function createResultLink(uuid, email) {
 	const response = await api.post(`/resultados/${uuid}/enlace`, { email });
 	return response.data.datos;
@@ -38,4 +44,3 @@ export async function getResultByToken(token) {
 	const response = await api.get(`/enlaces/${token}`);
 	return response.data.datos;
 }
-

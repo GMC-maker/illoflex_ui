@@ -86,24 +86,6 @@ export default function LandingPage() {
 								}}>
 								Empezar test
 							</Button>
-
-							<Button
-								component={RouterLink}
-								to='/test'
-								variant='outlined'
-								size='large'
-								sx={{
-									alignSelf: "flex-start",
-									textTransform: "none",
-									fontWeight: 600,
-									px: 3,
-									py: 1.25,
-									borderRadius: 999,
-									borderColor: "#bfdbfe",
-									color: "#1e3a8a",
-								}}>
-								Ver flujo inicial
-							</Button>
 						</Stack>
 					</Stack>
 				</Paper>
