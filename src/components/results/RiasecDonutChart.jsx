@@ -1,5 +1,5 @@
 import { Box, Stack, Typography } from "@mui/material";
-import { PieChart } from "@mui/x-charts/PieChart";
+import { LineChart } from "@mui/x-charts/LineChart";
 
 const RIASEC_CONFIG = [
 	{ code: "R", name: "Realista", color: "#2563eb" },
@@ -11,93 +11,75 @@ const RIASEC_CONFIG = [
 ];
 
 function buildSegments(normalizedScores) {
-	const rawSegments = RIASEC_CONFIG.map((profile) => ({
-		...profile,
-		value: Number(normalizedScores?.[profile.code] || 0),
-	}));
+	return RIASEC_CONFIG.map((profile) => {
+		const normalizedValue = Number(normalizedScores?.[profile.code] || 0);
 
-	const total = rawSegments.reduce((acc, segment) => acc + segment.value, 0);
-
-	if (total === 0) {
-		return rawSegments.map((segment) => ({
-			...segment,
-			percentage: 0,
-		}));
-	}
-
-	return rawSegments.map((segment) => ({
-		...segment,
-		percentage: Number(((segment.value / total) * 100).toFixed(1)),
-	}));
+		return {
+			...profile,
+			normalizedValue,
+			percentage: Number((normalizedValue * 100).toFixed(1)),
+		};
+	});
 }
 
-export default function RiasecDonutChart({ normalizedScores, principalProfileName }) {
+export default function RiasecDonutChart({
+	normalizedScores,
+	principalProfileName,
+}) {
 	const segments = buildSegments(normalizedScores);
-	const chartData = segments.map((segment) => ({
-		id: segment.code,
-		value: segment.percentage,
-		label: segment.name,
-		color: segment.color,
-	}));
+	const chartValues = segments.map((segment) => segment.percentage);
+	const chartLabels = segments.map((segment) => segment.code);
 
 	return (
 		<Stack spacing={3}>
 			<Box
 				sx={{
-					position: "relative",
-					display: "flex",
-					justifyContent: "center",
-					alignItems: "center",
-				}}
-			>
-				<PieChart
-					width={320}
-					height={260}
-					hideLegend
-					series={[
+					p: { xs: 2, md: 3 },
+					borderRadius: 3,
+					background:
+						"linear-gradient(180deg, #fbfdff 0%, #f8fbff 100%)",
+					border: "1px solid #e2e8f0",
+				}}>
+				<LineChart
+					height={280}
+					xAxis={[
 						{
-							data: chartData,
-							innerRadius: 58,
-							outerRadius: 108,
-							paddingAngle: 4,
-							cornerRadius: 6,
-							startAngle: -45,
-							endAngle: 315,
-							cx: 160,
-							cy: 130,
-							sortingValues: "none",
+							scaleType: "point",
+							data: chartLabels,
 						},
 					]}
-				/>
-
-				<Box
-					sx={{
-						position: "absolute",
-						top: "50%",
-						left: "50%",
-						transform: "translate(-50%, -50%)",
-						width: 110,
-						height: 110,
-						borderRadius: "50%",
-						backgroundColor: "#ffffff",
-						display: "flex",
-						alignItems: "center",
-						justifyContent: "center",
-						textAlign: "center",
-						px: 1.5,
-						pointerEvents: "none",
+					yAxis={[
+						{
+							min: 0,
+							max: 100,
+						},
+					]}
+					series={[
+						{
+							data: chartValues,
+							color: "#315efb",
+							curve: "monotoneX",
+							showMark: true,
+							label: principalProfileName,
+						},
+					]}
+					margin={{ top: 20, right: 20, bottom: 30, left: 40 }}
+					grid={{ horizontal: true }}
+					slotProps={{
+						legend: {
+							hidden: true,
+						},
 					}}
-				>
-					<Typography
-						variant="h3"
-						sx={{
-							fontSize: "1rem",
-							lineHeight: 1.2,
-						}}
-					>
-						{principalProfileName}
-					</Typography>
-				</Box>
+					sx={{
+						"& .MuiLineElement-root": {
+							strokeWidth: 5,
+						},
+						"& .MuiMarkElement-root": {
+							strokeWidth: 4,
+							r: 8,
+						},
+					}}
+				/>
 			</Box>
 
 			<Box
@@ -105,8 +87,7 @@ export default function RiasecDonutChart({ normalizedScores, principalProfileNam
 					display: "grid",
 					gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" },
 					gap: 1.25,
-				}}
-			>
+				}}>
 				{segments.map((segment) => (
 					<Box
 						key={segment.code}
@@ -119,9 +100,13 @@ export default function RiasecDonutChart({ normalizedScores, principalProfileNam
 							borderRadius: 2,
 							backgroundColor: "#f8fbff",
 							border: "1px solid #dbe2f0",
-						}}
-					>
-						<Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+						}}>
+						<Box
+							sx={{
+								display: "flex",
+								alignItems: "center",
+								gap: 1.25,
+							}}>
 							<Box
 								sx={{
 									width: 12,
@@ -131,11 +116,13 @@ export default function RiasecDonutChart({ normalizedScores, principalProfileNam
 									flexShrink: 0,
 								}}
 							/>
-							<Typography variant="body2" sx={{ color: "#334155", fontWeight: 600 }}>
+							<Typography
+								variant='body2'
+								sx={{ color: "#334155", fontWeight: 600 }}>
 								{segment.name}
 							</Typography>
 						</Box>
-						<Typography variant="body2" sx={{ color: "#475569" }}>
+						<Typography variant='body2' sx={{ color: "#475569" }}>
 							{segment.percentage}%
 						</Typography>
 					</Box>

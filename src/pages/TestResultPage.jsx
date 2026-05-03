@@ -284,7 +284,7 @@ export default function TestResultPage() {
 							variant="h1"
 							sx={{ fontSize: { xs: "2.2rem", md: "3rem" }, lineHeight: 1.08 }}
 						>
-							Tu perfil principal es {result.perfil_principal.nombre}
+							Tu perfil principal se orienta hacia lo {result.perfil_principal.nombre}
 						</Typography>
 
 						<Box
