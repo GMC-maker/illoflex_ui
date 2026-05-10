@@ -2,6 +2,7 @@ import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import {
 	Alert,
 	Box,
+	Button,
 	IconButton,
 	Menu,
 	MenuItem,
@@ -19,6 +20,7 @@ export default function AdminFamilyGrid({
 	onOpenFamilyMenu,
 	onCloseFamilyMenu,
 	onStartEditFamily,
+	onViewFamilyCiclos,
 }) {
 	return (
 		<Paper
@@ -72,7 +74,7 @@ export default function AdminFamilyGrid({
 									backgroundColor: "#f8fbff",
 									height: "100%",
 								}}>
-								<Stack spacing={1}>
+								<Stack spacing={2} sx={{ height: "100%" }}>
 									<Stack
 										direction='row'
 										justifyContent='space-between'
@@ -84,7 +86,6 @@ export default function AdminFamilyGrid({
 											{family.nombre}
 										</Typography>
 
-										{/* El engranaje se coloca arriba a la derecha de cada tarjeta. */}
 										<IconButton
 											size='small'
 											onClick={(event) =>
@@ -97,23 +98,34 @@ export default function AdminFamilyGrid({
 
 									<Typography
 										variant='body2'
-										sx={{ color: "#475569" }}>
+										sx={{ color: "#475569", flexGrow: 1 }}>
 										{family.descripcion || "Sin descripcion"}
 									</Typography>
+
+									<Button
+										type='button'
+										variant='outlined'
+										onClick={() => onViewFamilyCiclos(family)}
+										sx={{
+											alignSelf: "flex-start",
+											textTransform: "none",
+											fontWeight: 600,
+											borderRadius: 999,
+											px: 2.5,
+										}}>
+										Ver ciclos
+									</Button>
 								</Stack>
 							</Box>
 						))}
 					</Box>
 				) : null}
 
-				{/* El menu se ancla al engranaje pulsado y solo activa la edicion al pulsar Editar. */}
 				<Menu
 					anchorEl={familyMenuAnchorEl}
 					open={Boolean(familyMenuAnchorEl)}
 					onClose={onCloseFamilyMenu}>
-					<MenuItem onClick={onStartEditFamily}>
-						Editar
-					</MenuItem>
+					<MenuItem onClick={onStartEditFamily}>Editar</MenuItem>
 				</Menu>
 			</Stack>
 		</Paper>

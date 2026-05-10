@@ -1,60 +1,63 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, Box, Button, Container, Paper, Stack, Typography } from "@mui/material";
+import { Alert, Box,Button,Container,Paper,Stack,Typography,
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { logoutAdmin } from "../services/adminAuthService";
-import { createAdminFamily, getAdminFamilies, updateAdminFamily } from "../services/adminFamiliaService";
+import {createAdminCiclo,getAdminCiclos,updateAdminCiclo,
+} from "../services/adminCicloService";
+import {createAdminFamily,getAdminFamilies,updateAdminFamily,
+} from "../services/adminFamiliaService";
+import AdminCicloForm from "../components/admin/AdminCicloForm";
+import AdminCicloGrid from "../components/admin/AdminCicloGrid";
 import AdminFamilyForm from "../components/admin/AdminFamilyForm";
 import AdminFamilyGrid from "../components/admin/AdminFamilyGrid";
 
 export default function AdminDashboardPage({ admin }) {
-	// Controla si el cierre de sesion se esta enviando al backend.
 	const [isLoggingOut, setIsLoggingOut] = useState(false);
-
-	// Guarda un error general, por ejemplo si falla el logout.
 	const [errorMessage, setErrorMessage] = useState("");
 
-	// Guarda el listado de familias recuperado desde backend.
 	const [families, setFamilies] = useState([]);
-
-	// Controla el estado de carga del listado de familias.
 	const [isLoadingFamilies, setIsLoadingFamilies] = useState(true);
-
-	// Guarda un posible error al cargar familias.
 	const [familiesError, setFamiliesError] = useState("");
 
-	// Guarda los valores del formulario para crear o editar una familia.
 	const [familyFormData, setFamilyFormData] = useState({
 		nombre: "",
 		descripcion: "",
 	});
-
-	// Indica si el formulario esta creando una familia nueva.
 	const [isCreatingFamily, setIsCreatingFamily] = useState(false);
-
-	// Indica si el formulario esta guardando una edicion.
 	const [isUpdatingFamily, setIsUpdatingFamily] = useState(false);
-
-	// Guarda el error del formulario si algo falla.
 	const [familyFormError, setFamilyFormError] = useState("");
-
-	// Guarda un mensaje de exito cuando el alta o la edicion salen bien.
 	const [familyFormSuccess, setFamilyFormSuccess] = useState("");
-
-	// Guarda la familia que se esta editando. Si es null, el formulario esta en modo alta.
 	const [editingFamily, setEditingFamily] = useState(null);
-
-	// Guarda el elemento HTML del boton engranaje para abrir/cerrar el menu.
 	const [familyMenuAnchorEl, setFamilyMenuAnchorEl] = useState(null);
-
-	// Guarda la familia asociada al menu abierto para saber sobre cual actuar.
 	const [selectedFamilyForMenu, setSelectedFamilyForMenu] = useState(null);
 
-	// Referencia al formulario para mover la vista cuando entramos en modo edicion.
+	const [selectedFamilyForCiclos, setSelectedFamilyForCiclos] = useState(null);
+
+	const [ciclos, setCiclos] = useState([]);
+	const [isLoadingCiclos, setIsLoadingCiclos] = useState(true);
+	const [ciclosError, setCiclosError] = useState("");
+
+	const [cicloFormData, setCicloFormData] = useState({
+		id_familia: "",
+		nombre: "",
+		nivel: "GS",
+		descripcion: "",
+		duracion_horas: "",
+	});
+	const [isCreatingCiclo, setIsCreatingCiclo] = useState(false);
+	const [isUpdatingCiclo, setIsUpdatingCiclo] = useState(false);
+	const [cicloFormError, setCicloFormError] = useState("");
+	const [cicloFormSuccess, setCicloFormSuccess] = useState("");
+	const [editingCiclo, setEditingCiclo] = useState(null);
+	const [cicloMenuAnchorEl, setCicloMenuAnchorEl] = useState(null);
+	const [selectedCicloForMenu, setSelectedCicloForMenu] = useState(null);
+
 	const familyFormRef = useRef(null);
+	const cicloFormRef = useRef(null);
 
 	const navigate = useNavigate();
 
-	// Carga las familias profesionales desde backend.
 	const loadFamilies = useCallback(async () => {
 		try {
 			const familiesData = await getAdminFamilies();
@@ -71,25 +74,57 @@ export default function AdminDashboardPage({ admin }) {
 		}
 	}, []);
 
-	// Al entrar en el panel admin, recupera el listado inicial.
+	const loadCiclos = useCallback(async () => {
+		try {
+			const ciclosData = await getAdminCiclos();
+			setCiclos(ciclosData);
+			setCiclosError("");
+		} catch (error) {
+			setCiclos([]);
+			setCiclosError(
+				error?.response?.data?.mensaje ||
+					"No se pudieron cargar los ciclos formativos",
+			);
+		} finally {
+			setIsLoadingCiclos(false);
+		}
+	}, []);
+
 	useEffect(() => {
 		loadFamilies();
-	}, [loadFamilies]);
+		loadCiclos();
+	}, [loadFamilies, loadCiclos]);
 
-	// Cuando se activa el modo edicion, espera al render y luego mueve la vista al formulario.
 	useEffect(() => {
 		if (!editingFamily) {
 			return;
 		}
 
 		const timeoutId = setTimeout(() => {
-			scrollToEdit();
+			familyFormRef.current?.scrollIntoView({
+				behavior: "smooth",
+				block: "start",
+			});
 		}, 50);
 
 		return () => clearTimeout(timeoutId);
 	}, [editingFamily]);
 
-	// Cierra la sesion del admin y redirige al login.
+	useEffect(() => {
+		if (!editingCiclo) {
+			return;
+		}
+
+		const timeoutId = setTimeout(() => {
+			cicloFormRef.current?.scrollIntoView({
+				behavior: "smooth",
+				block: "start",
+			});
+		}, 50);
+
+		return () => clearTimeout(timeoutId);
+	}, [editingCiclo]);
+
 	const handleLogout = async () => {
 		setErrorMessage("");
 		setIsLoggingOut(true);
@@ -107,7 +142,6 @@ export default function AdminDashboardPage({ admin }) {
 		}
 	};
 
-	// Actualiza el campo correspondiente del formulario.
 	const handleFamilyFormChange = (event) => {
 		const { name, value } = event.target;
 
@@ -117,27 +151,35 @@ export default function AdminDashboardPage({ admin }) {
 		}));
 	};
 
-	// Abre el menu del engranaje de una tarjeta concreta.
+	const handleCicloFormChange = (event) => {
+		const { name, value } = event.target;
+
+		setCicloFormData((prev) => ({
+			...prev,
+			[name]: value,
+		}));
+	};
+
 	const handleOpenFamilyMenu = (event, family) => {
 		setFamilyMenuAnchorEl(event.currentTarget);
 		setSelectedFamilyForMenu(family);
 	};
 
-	// Cierra el menu del engranaje.
 	const handleCloseFamilyMenu = () => {
 		setFamilyMenuAnchorEl(null);
 		setSelectedFamilyForMenu(null);
 	};
 
-	// Lleva la vista hasta el formulario cuando se activa la edicion.
-	const scrollToEdit = () => {
-		familyFormRef.current?.scrollIntoView({
-			behavior: "smooth",
-			block: "start",
-		});
+	const handleOpenCicloMenu = (event, ciclo) => {
+		setCicloMenuAnchorEl(event.currentTarget);
+		setSelectedCicloForMenu(ciclo);
 	};
 
-	// Lleva la vista hasta la tarjeta de una familia concreta.
+	const handleCloseCicloMenu = () => {
+		setCicloMenuAnchorEl(null);
+		setSelectedCicloForMenu(null);
+	};
+
 	const scrollToFamilyCard = (idFamilia) => {
 		const familyCard = document.getElementById(`family-card-${idFamilia}`);
 
@@ -147,7 +189,15 @@ export default function AdminDashboardPage({ admin }) {
 		});
 	};
 
-	// Activa el modo edicion cargando la familia seleccionada en el formulario.
+	const scrollToCicloCard = (idCiclo) => {
+		const cicloCard = document.getElementById(`ciclo-card-${idCiclo}`);
+
+		cicloCard?.scrollIntoView({
+			behavior: "smooth",
+			block: "center",
+		});
+	};
+
 	const handleStartEditFamily = () => {
 		if (!selectedFamilyForMenu) {
 			return;
@@ -163,7 +213,48 @@ export default function AdminDashboardPage({ admin }) {
 		handleCloseFamilyMenu();
 	};
 
-	// Cancela la edicion y devuelve el formulario al modo alta.
+	const handleViewFamilyCiclos = (family) => {
+		setSelectedFamilyForCiclos(family);
+		setEditingCiclo(null);
+		setCicloFormError("");
+		setCicloFormSuccess("");
+		setCicloFormData({
+			id_familia: String(family.id_familia),
+			nombre: "",
+			nivel: "GS",
+			descripcion: "",
+			duracion_horas: "",
+		});
+	};
+
+	const handleBackToFamilies = () => {
+		setSelectedFamilyForCiclos(null);
+		setEditingCiclo(null);
+		setSelectedCicloForMenu(null);
+		setCicloFormError("");
+		setCicloFormSuccess("");
+	};
+
+	const handleStartEditCiclo = () => {
+		if (!selectedCicloForMenu) {
+			return;
+		}
+
+		setEditingCiclo(selectedCicloForMenu);
+		setCicloFormData({
+			id_familia: String(selectedCicloForMenu.id_familia),
+			nombre: selectedCicloForMenu.nombre,
+			nivel: selectedCicloForMenu.nivel,
+			descripcion: selectedCicloForMenu.descripcion || "",
+			duracion_horas: selectedCicloForMenu.duracion_horas
+				? String(selectedCicloForMenu.duracion_horas)
+				: "",
+		});
+		setCicloFormError("");
+		setCicloFormSuccess("");
+		handleCloseCicloMenu();
+	};
+
 	const handleCancelEditFamily = () => {
 		const familyId = editingFamily?.id_familia || null;
 
@@ -175,7 +266,6 @@ export default function AdminDashboardPage({ admin }) {
 		setFamilyFormError("");
 		setFamilyFormSuccess("");
 
-		// Al cancelar, vuelve a la tarjeta que estaba editando.
 		if (familyId) {
 			setTimeout(() => {
 				scrollToFamilyCard(familyId);
@@ -183,7 +273,29 @@ export default function AdminDashboardPage({ admin }) {
 		}
 	};
 
-	// Envia el formulario para crear una nueva familia o actualizar una existente.
+	const handleCancelEditCiclo = () => {
+		const cicloId = editingCiclo?.id_ciclo || null;
+
+		setEditingCiclo(null);
+		setCicloFormData({
+			id_familia: selectedFamilyForCiclos
+				? String(selectedFamilyForCiclos.id_familia)
+				: "",
+			nombre: "",
+			nivel: "GS",
+			descripcion: "",
+			duracion_horas: "",
+		});
+		setCicloFormError("");
+		setCicloFormSuccess("");
+
+		if (cicloId) {
+			setTimeout(() => {
+				scrollToCicloCard(cicloId);
+			}, 0);
+		}
+	};
+
 	const handleSubmitFamilyForm = async (event) => {
 		event.preventDefault();
 		setFamilyFormError("");
@@ -197,7 +309,6 @@ export default function AdminDashboardPage({ admin }) {
 				await updateAdminFamily(familyId, familyFormData);
 
 				setFamilyFormSuccess("Familia profesional actualizada correctamente");
-
 				setEditingFamily(null);
 				setFamilyFormData({
 					nombre: "",
@@ -207,7 +318,6 @@ export default function AdminDashboardPage({ admin }) {
 				setIsLoadingFamilies(true);
 				await loadFamilies();
 
-				// Tras guardar, vuelve a la tarjeta actualizada.
 				setTimeout(() => {
 					scrollToFamilyCard(familyId);
 				}, 0);
@@ -227,16 +337,11 @@ export default function AdminDashboardPage({ admin }) {
 
 		try {
 			await createAdminFamily(familyFormData);
-
-			// Limpia el formulario tras un alta correcta.
 			setFamilyFormData({
 				nombre: "",
 				descripcion: "",
 			});
-
 			setFamilyFormSuccess("Familia profesional creada correctamente");
-
-			// Recarga el listado para mostrar la nueva familia.
 			setIsLoadingFamilies(true);
 			await loadFamilies();
 		} catch (error) {
@@ -246,6 +351,76 @@ export default function AdminDashboardPage({ admin }) {
 			);
 		} finally {
 			setIsCreatingFamily(false);
+		}
+	};
+
+	const handleSubmitCicloForm = async (event) => {
+		event.preventDefault();
+		setCicloFormError("");
+		setCicloFormSuccess("");
+
+		if (editingCiclo) {
+			const cicloId = editingCiclo.id_ciclo;
+			setIsUpdatingCiclo(true);
+
+			try {
+				await updateAdminCiclo(cicloId, cicloFormData);
+
+				setCicloFormSuccess("Ciclo formativo actualizado correctamente");
+				setEditingCiclo(null);
+				setCicloFormData({
+					id_familia: selectedFamilyForCiclos
+						? String(selectedFamilyForCiclos.id_familia)
+						: "",
+					nombre: "",
+					nivel: "GS",
+					descripcion: "",
+					duracion_horas: "",
+				});
+
+				setIsLoadingCiclos(true);
+				await loadCiclos();
+
+				setTimeout(() => {
+					scrollToCicloCard(cicloId);
+				}, 0);
+			} catch (error) {
+				setCicloFormError(
+					error?.response?.data?.mensaje ||
+						"No se pudo actualizar el ciclo formativo",
+				);
+			} finally {
+				setIsUpdatingCiclo(false);
+			}
+
+			return;
+		}
+
+		setIsCreatingCiclo(true);
+
+		try {
+			await createAdminCiclo(cicloFormData);
+
+			setCicloFormData({
+				id_familia: selectedFamilyForCiclos
+					? String(selectedFamilyForCiclos.id_familia)
+					: "",
+				nombre: "",
+				nivel: "GS",
+				descripcion: "",
+				duracion_horas: "",
+			});
+
+			setCicloFormSuccess("Ciclo formativo creado correctamente");
+			setIsLoadingCiclos(true);
+			await loadCiclos();
+		} catch (error) {
+			setCicloFormError(
+				error?.response?.data?.mensaje ||
+					"No se pudo crear el ciclo formativo",
+			);
+		} finally {
+			setIsCreatingCiclo(false);
 		}
 	};
 
@@ -322,35 +497,97 @@ export default function AdminDashboardPage({ admin }) {
 								</Typography>
 
 								<Typography sx={{ color: "#475569" }}>
-									El acceso admin ya funciona correctamente. Ahora el panel ya
-									esta conectado con el listado de familias profesionales.
+									{selectedFamilyForCiclos
+										? `Gestionando ciclos de ${selectedFamilyForCiclos.nombre}.`
+										: "El acceso admin ya funciona correctamente. Ahora el panel ya esta conectado con el listado de familias profesionales."}
 								</Typography>
 							</Stack>
 						</Paper>
 
-						<AdminFamilyForm
-							formRef={familyFormRef}
-							editingFamily={editingFamily}
-							familyFormData={familyFormData}
-							familyFormError={familyFormError}
-							familyFormSuccess={familyFormSuccess}
-							isCreatingFamily={isCreatingFamily}
-							isUpdatingFamily={isUpdatingFamily}
-							onChange={handleFamilyFormChange}
-							onSubmit={handleSubmitFamilyForm}
-							onCancelEdit={handleCancelEditFamily}
-						/>
+						{!selectedFamilyForCiclos ? (
+							<>
+								<AdminFamilyForm
+									formRef={familyFormRef}
+									editingFamily={editingFamily}
+									familyFormData={familyFormData}
+									familyFormError={familyFormError}
+									familyFormSuccess={familyFormSuccess}
+									isCreatingFamily={isCreatingFamily}
+									isUpdatingFamily={isUpdatingFamily}
+									onChange={handleFamilyFormChange}
+									onSubmit={handleSubmitFamilyForm}
+									onCancelEdit={handleCancelEditFamily}
+								/>
 
-						<AdminFamilyGrid
-							families={families}
-							isLoadingFamilies={isLoadingFamilies}
-							familiesError={familiesError}
-							familyMenuAnchorEl={familyMenuAnchorEl}
-							selectedFamilyForMenu={selectedFamilyForMenu}
-							onOpenFamilyMenu={handleOpenFamilyMenu}
-							onCloseFamilyMenu={handleCloseFamilyMenu}
-							onStartEditFamily={handleStartEditFamily}
-						/>
+								<AdminFamilyGrid
+									families={families}
+									isLoadingFamilies={isLoadingFamilies}
+									familiesError={familiesError}
+									familyMenuAnchorEl={familyMenuAnchorEl}
+									selectedFamilyForMenu={selectedFamilyForMenu}
+									onOpenFamilyMenu={handleOpenFamilyMenu}
+									onCloseFamilyMenu={handleCloseFamilyMenu}
+									onStartEditFamily={handleStartEditFamily}
+									onViewFamilyCiclos={handleViewFamilyCiclos}
+								/>
+							</>
+						) : (
+							<>
+								<Stack
+									direction={{ xs: "column", sm: "row" }}
+									justifyContent='space-between'
+									alignItems={{ xs: "flex-start", sm: "center" }}
+									spacing={2}>
+									<Stack spacing={1}>
+										<Typography variant='h5' sx={{ fontWeight: 700 }}>
+											Ciclos formativos
+										</Typography>
+
+										<Typography sx={{ color: "#475569" }}>
+											Familia actual: {selectedFamilyForCiclos.nombre}
+										</Typography>
+									</Stack>
+
+									<Button
+										type='button'
+										variant='outlined'
+										onClick={handleBackToFamilies}
+										sx={{
+											textTransform: "none",
+											fontWeight: 600,
+											borderRadius: 999,
+											px: 2.5,
+										}}>
+										Volver a familias
+									</Button>
+								</Stack>
+
+								<AdminCicloForm
+									formRef={cicloFormRef}
+									editingCiclo={editingCiclo}
+									cicloFormData={cicloFormData}
+									cicloFormError={cicloFormError}
+									cicloFormSuccess={cicloFormSuccess}
+									isCreatingCiclo={isCreatingCiclo}
+									isUpdatingCiclo={isUpdatingCiclo}
+									families={[selectedFamilyForCiclos]}
+									onChange={handleCicloFormChange}
+									onSubmit={handleSubmitCicloForm}
+									onCancelEdit={handleCancelEditCiclo}
+								/>
+
+								<AdminCicloGrid
+									selectedFamilyForCiclos={selectedFamilyForCiclos}
+									ciclos={ciclos}
+									isLoadingCiclos={isLoadingCiclos}
+									ciclosError={ciclosError}
+									cicloMenuAnchorEl={cicloMenuAnchorEl}
+									onOpenCicloMenu={handleOpenCicloMenu}
+									onCloseCicloMenu={handleCloseCicloMenu}
+									onStartEditCiclo={handleStartEditCiclo}
+								/>
+							</>
+						)}
 					</Stack>
 				</Paper>
 			</Container>
