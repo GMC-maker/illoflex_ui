@@ -1,20 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
-import {
-	Alert,
-	Box,
-	Button,
-	Container,
-	Paper,
-	Stack,
-	TextField,
-	Typography,
-} from "@mui/material";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Alert, Box, Button, Container, Paper, Stack, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { logoutAdmin } from "../services/adminAuthService";
-import {
-	createAdminFamily,
-	getAdminFamilies,
-} from "../services/adminFamiliaService";
+import { createAdminFamily, getAdminFamilies, updateAdminFamily } from "../services/adminFamiliaService";
+import AdminFamilyForm from "../components/admin/AdminFamilyForm";
+import AdminFamilyGrid from "../components/admin/AdminFamilyGrid";
 
 export default function AdminDashboardPage({ admin }) {
 	// Controla si el cierre de sesion se esta enviando al backend.
@@ -32,20 +22,35 @@ export default function AdminDashboardPage({ admin }) {
 	// Guarda un posible error al cargar familias.
 	const [familiesError, setFamiliesError] = useState("");
 
-	// Guarda los valores del formulario para crear una familia nueva.
-	const [newFamilyData, setNewFamilyData] = useState({
+	// Guarda los valores del formulario para crear o editar una familia.
+	const [familyFormData, setFamilyFormData] = useState({
 		nombre: "",
 		descripcion: "",
 	});
 
-	// Controla si el formulario de alta se esta enviando.
+	// Indica si el formulario esta creando una familia nueva.
 	const [isCreatingFamily, setIsCreatingFamily] = useState(false);
 
-	// Guarda el error del alta de familia si algo falla.
-	const [createFamilyError, setCreateFamilyError] = useState("");
+	// Indica si el formulario esta guardando una edicion.
+	const [isUpdatingFamily, setIsUpdatingFamily] = useState(false);
 
-	// Guarda un mensaje de exito cuando la familia se crea correctamente.
-	const [createFamilySuccess, setCreateFamilySuccess] = useState("");
+	// Guarda el error del formulario si algo falla.
+	const [familyFormError, setFamilyFormError] = useState("");
+
+	// Guarda un mensaje de exito cuando el alta o la edicion salen bien.
+	const [familyFormSuccess, setFamilyFormSuccess] = useState("");
+
+	// Guarda la familia que se esta editando. Si es null, el formulario esta en modo alta.
+	const [editingFamily, setEditingFamily] = useState(null);
+
+	// Guarda el elemento HTML del boton engranaje para abrir/cerrar el menu.
+	const [familyMenuAnchorEl, setFamilyMenuAnchorEl] = useState(null);
+
+	// Guarda la familia asociada al menu abierto para saber sobre cual actuar.
+	const [selectedFamilyForMenu, setSelectedFamilyForMenu] = useState(null);
+
+	// Referencia al formulario para mover la vista cuando entramos en modo edicion.
+	const familyFormRef = useRef(null);
 
 	const navigate = useNavigate();
 
@@ -71,6 +76,19 @@ export default function AdminDashboardPage({ admin }) {
 		loadFamilies();
 	}, [loadFamilies]);
 
+	// Cuando se activa el modo edicion, espera al render y luego mueve la vista al formulario.
+	useEffect(() => {
+		if (!editingFamily) {
+			return;
+		}
+
+		const timeoutId = setTimeout(() => {
+			scrollToEdit();
+		}, 50);
+
+		return () => clearTimeout(timeoutId);
+	}, [editingFamily]);
+
 	// Cierra la sesion del admin y redirige al login.
 	const handleLogout = async () => {
 		setErrorMessage("");
@@ -89,39 +107,140 @@ export default function AdminDashboardPage({ admin }) {
 		}
 	};
 
-	// Actualiza el campo correspondiente del formulario de alta.
-	const handleNewFamilyChange = (event) => {
+	// Actualiza el campo correspondiente del formulario.
+	const handleFamilyFormChange = (event) => {
 		const { name, value } = event.target;
 
-		setNewFamilyData((prev) => ({
+		setFamilyFormData((prev) => ({
 			...prev,
 			[name]: value,
 		}));
 	};
 
-	// Envia el formulario para crear una nueva familia.
-	const handleCreateFamily = async (event) => {
+	// Abre el menu del engranaje de una tarjeta concreta.
+	const handleOpenFamilyMenu = (event, family) => {
+		setFamilyMenuAnchorEl(event.currentTarget);
+		setSelectedFamilyForMenu(family);
+	};
+
+	// Cierra el menu del engranaje.
+	const handleCloseFamilyMenu = () => {
+		setFamilyMenuAnchorEl(null);
+		setSelectedFamilyForMenu(null);
+	};
+
+	// Lleva la vista hasta el formulario cuando se activa la edicion.
+	const scrollToEdit = () => {
+		familyFormRef.current?.scrollIntoView({
+			behavior: "smooth",
+			block: "start",
+		});
+	};
+
+	// Lleva la vista hasta la tarjeta de una familia concreta.
+	const scrollToFamilyCard = (idFamilia) => {
+		const familyCard = document.getElementById(`family-card-${idFamilia}`);
+
+		familyCard?.scrollIntoView({
+			behavior: "smooth",
+			block: "center",
+		});
+	};
+
+	// Activa el modo edicion cargando la familia seleccionada en el formulario.
+	const handleStartEditFamily = () => {
+		if (!selectedFamilyForMenu) {
+			return;
+		}
+
+		setEditingFamily(selectedFamilyForMenu);
+		setFamilyFormData({
+			nombre: selectedFamilyForMenu.nombre,
+			descripcion: selectedFamilyForMenu.descripcion || "",
+		});
+		setFamilyFormError("");
+		setFamilyFormSuccess("");
+		handleCloseFamilyMenu();
+	};
+
+	// Cancela la edicion y devuelve el formulario al modo alta.
+	const handleCancelEditFamily = () => {
+		const familyId = editingFamily?.id_familia || null;
+
+		setEditingFamily(null);
+		setFamilyFormData({
+			nombre: "",
+			descripcion: "",
+		});
+		setFamilyFormError("");
+		setFamilyFormSuccess("");
+
+		// Al cancelar, vuelve a la tarjeta que estaba editando.
+		if (familyId) {
+			setTimeout(() => {
+				scrollToFamilyCard(familyId);
+			}, 0);
+		}
+	};
+
+	// Envia el formulario para crear una nueva familia o actualizar una existente.
+	const handleSubmitFamilyForm = async (event) => {
 		event.preventDefault();
-		setCreateFamilyError("");
-		setCreateFamilySuccess("");
+		setFamilyFormError("");
+		setFamilyFormSuccess("");
+
+		if (editingFamily) {
+			const familyId = editingFamily.id_familia;
+			setIsUpdatingFamily(true);
+
+			try {
+				await updateAdminFamily(familyId, familyFormData);
+
+				setFamilyFormSuccess("Familia profesional actualizada correctamente");
+
+				setEditingFamily(null);
+				setFamilyFormData({
+					nombre: "",
+					descripcion: "",
+				});
+
+				setIsLoadingFamilies(true);
+				await loadFamilies();
+
+				// Tras guardar, vuelve a la tarjeta actualizada.
+				setTimeout(() => {
+					scrollToFamilyCard(familyId);
+				}, 0);
+			} catch (error) {
+				setFamilyFormError(
+					error?.response?.data?.mensaje ||
+						"No se pudo actualizar la familia profesional",
+				);
+			} finally {
+				setIsUpdatingFamily(false);
+			}
+
+			return;
+		}
+
 		setIsCreatingFamily(true);
 
 		try {
-			await createAdminFamily(newFamilyData);
+			await createAdminFamily(familyFormData);
 
 			// Limpia el formulario tras un alta correcta.
-			setNewFamilyData({
+			setFamilyFormData({
 				nombre: "",
 				descripcion: "",
 			});
 
-			setCreateFamilySuccess("Familia profesional creada correctamente");
+			setFamilyFormSuccess("Familia profesional creada correctamente");
 
 			// Recarga el listado para mostrar la nueva familia.
 			setIsLoadingFamilies(true);
 			await loadFamilies();
 		} catch (error) {
-			setCreateFamilyError(
+			setFamilyFormError(
 				error?.response?.data?.mensaje ||
 					"No se pudo crear la familia profesional",
 			);
@@ -183,15 +302,11 @@ export default function AdminDashboardPage({ admin }) {
 									borderRadius: 999,
 									px: 2.5,
 								}}>
-								{isLoggingOut
-									? "Cerrando sesion..."
-									: "Cerrar sesion"}
+								{isLoggingOut ? "Cerrando sesion..." : "Cerrar sesion"}
 							</Button>
 						</Stack>
 
-						{errorMessage ? (
-							<Alert severity='error'>{errorMessage}</Alert>
-						) : null}
+						{errorMessage ? <Alert severity='error'>{errorMessage}</Alert> : null}
 
 						<Paper
 							elevation={0}
@@ -207,160 +322,35 @@ export default function AdminDashboardPage({ admin }) {
 								</Typography>
 
 								<Typography sx={{ color: "#475569" }}>
-									El acceso admin ya funciona correctamente.
-									Ahora el panel ya esta conectado con el
-									listado de familias profesionales.
+									El acceso admin ya funciona correctamente. Ahora el panel ya
+									esta conectado con el listado de familias profesionales.
 								</Typography>
 							</Stack>
 						</Paper>
 
-						<Paper
-							elevation={0}
-							sx={{
-								p: 3,
-								borderRadius: 3,
-								border: "1px solid #dbe2f0",
-								backgroundColor: "#ffffff",
-							}}>
-							<Stack spacing={2.5}>
-								<Typography variant='h6' sx={{ fontWeight: 700 }}>
-									Nueva familia profesional
-								</Typography>
+						<AdminFamilyForm
+							formRef={familyFormRef}
+							editingFamily={editingFamily}
+							familyFormData={familyFormData}
+							familyFormError={familyFormError}
+							familyFormSuccess={familyFormSuccess}
+							isCreatingFamily={isCreatingFamily}
+							isUpdatingFamily={isUpdatingFamily}
+							onChange={handleFamilyFormChange}
+							onSubmit={handleSubmitFamilyForm}
+							onCancelEdit={handleCancelEditFamily}
+						/>
 
-								{createFamilyError ? (
-									<Alert severity='error'>
-										{createFamilyError}
-									</Alert>
-								) : null}
-
-								{createFamilySuccess ? (
-									<Alert severity='success'>
-										{createFamilySuccess}
-									</Alert>
-								) : null}
-
-								<Box component='form' onSubmit={handleCreateFamily}>
-									<Stack spacing={2}>
-										<TextField
-											label='Nombre de la familia'
-											name='nombre'
-											value={newFamilyData.nombre}
-											onChange={handleNewFamilyChange}
-											required
-											fullWidth
-										/>
-
-										<TextField
-											label='Descripcion'
-											name='descripcion'
-											value={newFamilyData.descripcion}
-											onChange={handleNewFamilyChange}
-											multiline
-											minRows={3}
-											fullWidth
-										/>
-
-										<Button
-											type='submit'
-											variant='contained'
-											disabled={isCreatingFamily}
-											sx={{
-												alignSelf: "flex-start",
-												textTransform: "none",
-												fontWeight: 600,
-												borderRadius: 999,
-												px: 3,
-												backgroundColor: "#1d4ed8",
-												boxShadow: "none",
-												"&:hover": {
-													backgroundColor: "#1e40af",
-													boxShadow: "none",
-												},
-											}}>
-											{isCreatingFamily
-												? "Guardando..."
-												: "Crear familia"}
-										</Button>
-									</Stack>
-								</Box>
-							</Stack>
-						</Paper>
-
-						<Paper
-							elevation={0}
-							sx={{
-								p: 3,
-								borderRadius: 3,
-								border: "1px solid #dbe2f0",
-								backgroundColor: "#ffffff",
-							}}>
-							<Stack spacing={2}>
-								<Typography variant='h6' sx={{ fontWeight: 700 }}>
-									Familias profesionales
-								</Typography>
-
-								{isLoadingFamilies ? (
-									<Typography sx={{ color: "#475569" }}>
-										Cargando familias...
-									</Typography>
-								) : null}
-
-								{familiesError ? (
-									<Alert severity='error'>{familiesError}</Alert>
-								) : null}
-
-								{!isLoadingFamilies &&
-								!familiesError &&
-								families.length === 0 ? (
-									<Alert severity='info'>
-										No hay familias profesionales cargadas.
-									</Alert>
-								) : null}
-
-								{!isLoadingFamilies && !familiesError ? (
-									<Box
-										sx={{
-											display: "grid",
-											gridTemplateColumns: {
-												xs: "1fr",
-												sm: "repeat(2, 1fr)",
-												lg: "repeat(3, 1fr)",
-											},
-											gap: 2,
-										}}>
-										{families.map((family) => (
-											<Box
-												key={family.id_familia}
-												sx={{
-													p: 2,
-													borderRadius: 2.5,
-													border: "1px solid #dbe2f0",
-													backgroundColor: "#f8fbff",
-													height: "100%",
-												}}>
-												<Stack spacing={0.75}>
-													<Typography
-														variant='body1'
-														sx={{
-															fontWeight: 700,
-															color: "#1f2937",
-														}}>
-														{family.nombre}
-													</Typography>
-
-													<Typography
-														variant='body2'
-														sx={{ color: "#475569" }}>
-														{family.descripcion ||
-															"Sin descripcion"}
-													</Typography>
-												</Stack>
-											</Box>
-										))}
-									</Box>
-								) : null}
-							</Stack>
-						</Paper>
+						<AdminFamilyGrid
+							families={families}
+							isLoadingFamilies={isLoadingFamilies}
+							familiesError={familiesError}
+							familyMenuAnchorEl={familyMenuAnchorEl}
+							selectedFamilyForMenu={selectedFamilyForMenu}
+							onOpenFamilyMenu={handleOpenFamilyMenu}
+							onCloseFamilyMenu={handleCloseFamilyMenu}
+							onStartEditFamily={handleStartEditFamily}
+						/>
 					</Stack>
 				</Paper>
 			</Container>
