@@ -1,5 +1,21 @@
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
-import {Alert,Box,IconButton,Menu,MenuItem,Paper,Stack,Typography,} from "@mui/material";
+import {
+	Alert,
+	Box,
+	Button,
+	IconButton,
+	Menu,
+	MenuItem,
+	Paper,
+	Stack,
+	Typography,
+} from "@mui/material";
+
+const CATALOG_URLS_BY_LEVEL = {
+	GS: "https://www.juntadeandalucia.es/educacion/portales/web/formacion-profesional-andaluza/grado-superior-catalogo-de-titulos",
+	GM: "https://www.juntadeandalucia.es/educacion/portales/web/formacion-profesional-andaluza/grado-medio-catalogo-de-titulos",
+	GB: "https://www.juntadeandalucia.es/educacion/portales/web/formacion-profesional-andaluza/grado-basico-catalogo-de-titulos",
+};
 
 const getNivelLabel = (nivel) => {
 	if (nivel === "GS") {
@@ -15,6 +31,10 @@ const getNivelLabel = (nivel) => {
 	}
 
 	return nivel;
+};
+
+const getCatalogUrlByLevel = (nivel) => {
+	return CATALOG_URLS_BY_LEVEL[nivel] || null;
 };
 
 export default function AdminCicloGrid({
@@ -55,13 +75,16 @@ export default function AdminCicloGrid({
 					</Typography>
 				) : null}
 
-				{ciclosError ? <Alert severity='error'>{ciclosError}</Alert> : null}
+				{ciclosError ? (
+					<Alert severity='error'>{ciclosError}</Alert>
+				) : null}
 
 				{!isLoadingCiclos &&
 				!ciclosError &&
 				ciclosOfSelectedFamily.length === 0 ? (
 					<Alert severity='info'>
-						Aun no hay ciclos cargados para esta familia profesional.
+						Aun no hay ciclos cargados para esta familia
+						profesional.
 					</Alert>
 				) : null}
 
@@ -75,63 +98,97 @@ export default function AdminCicloGrid({
 							},
 							gap: 2,
 						}}>
-						{ciclosOfSelectedFamily.map((ciclo) => (
-							<Box
-								key={ciclo.id_ciclo}
-								id={`ciclo-card-${ciclo.id_ciclo}`}
-								sx={{
-									p: 2,
-									borderRadius: 2.5,
-									border: "1px solid #dbe2f0",
-									backgroundColor: "#f8fbff",
-								}}>
-								<Stack spacing={1.5}>
-									<Stack
-										direction='row'
-										justifyContent='space-between'
-										alignItems='flex-start'
-										spacing={1}>
-										<Stack spacing={0.5}>
-											<Typography
-												variant='body1'
-												sx={{
-													fontWeight: 700,
-													color: "#1f2937",
-												}}>
-												{ciclo.nombre}
-											</Typography>
+						{ciclosOfSelectedFamily.map((ciclo) => {
+							const catalogUrl = getCatalogUrlByLevel(
+								ciclo.nivel,
+							);
 
-											<Typography
-												variant='body2'
-												sx={{ color: "#1d4ed8", fontWeight: 600 }}>
-												{getNivelLabel(ciclo.nivel)}
-											</Typography>
+							return (
+								<Box
+									key={ciclo.id_ciclo}
+									id={`ciclo-card-${ciclo.id_ciclo}`}
+									sx={{
+										p: 2,
+										borderRadius: 2.5,
+										border: "1px solid #dbe2f0",
+										backgroundColor: "#f8fbff",
+									}}>
+									<Stack spacing={1.5}>
+										<Stack
+											direction='row'
+											justifyContent='space-between'
+											alignItems='flex-start'
+											spacing={1}>
+											<Stack spacing={0.5}>
+												<Typography
+													variant='body1'
+													sx={{
+														fontWeight: 700,
+														color: "#1f2937",
+													}}>
+													{ciclo.nombre}
+												</Typography>
+
+												<Typography
+													variant='body2'
+													sx={{
+														color: "#1d4ed8",
+														fontWeight: 600,
+													}}>
+													{getNivelLabel(ciclo.nivel)}
+												</Typography>
+											</Stack>
+
+											<IconButton
+												size='small'
+												onClick={(event) =>
+													onOpenCicloMenu(
+														event,
+														ciclo,
+													)
+												}
+												sx={{ color: "#475569" }}>
+												<SettingsOutlinedIcon fontSize='small' />
+											</IconButton>
 										</Stack>
 
-										<IconButton
-											size='small'
-											onClick={(event) => onOpenCicloMenu(event, ciclo)}
+										<Typography
+											variant='body2'
 											sx={{ color: "#475569" }}>
-											<SettingsOutlinedIcon fontSize='small' />
-										</IconButton>
+											{ciclo.descripcion ||
+												"Sin descripcion"}
+										</Typography>
+
+										<Typography
+											variant='body2'
+											sx={{ color: "#64748b" }}>
+											{ciclo.duracion_horas
+												? `${ciclo.duracion_horas} horas`
+												: "Duracion no indicada"}
+										</Typography>
+
+										{catalogUrl ? (
+											<Button
+												component='a'
+												href={catalogUrl}
+												target='_blank'
+												rel='noreferrer'
+												variant='outlined'
+												size='small'
+												sx={{
+													alignSelf: "flex-start",
+													textTransform: "none",
+													fontWeight: 600,
+													borderRadius: 999,
+													px: 2,
+												}}>
+												Ver detalle oficial
+											</Button>
+										) : null}
 									</Stack>
-
-									<Typography
-										variant='body2'
-										sx={{ color: "#475569" }}>
-										{ciclo.descripcion || "Sin descripcion"}
-									</Typography>
-
-									<Typography
-										variant='body2'
-										sx={{ color: "#64748b" }}>
-										{ciclo.duracion_horas
-											? `${ciclo.duracion_horas} horas`
-											: "Duracion no indicada"}
-									</Typography>
-								</Stack>
-							</Box>
-						))}
+								</Box>
+							);
+						})}
 					</Box>
 				) : null}
 
