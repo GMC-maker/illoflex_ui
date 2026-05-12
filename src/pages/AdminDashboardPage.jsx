@@ -51,7 +51,7 @@ export default function AdminDashboardPage({ admin }) {
     const [idCicloHighlight, setIdCicloHighlight] = useState(null);
 
     //4 refs y navegacion.
-    const familyFormRef = useRef(null);
+    const familiaFormRef = useRef(null);
     const cicloFormRef = useRef(null);
     const navigate = useNavigate();
 
@@ -96,7 +96,7 @@ export default function AdminDashboardPage({ admin }) {
         }
 
         const timeoutId = setTimeout(() => {
-            familyFormRef.current?.scrollIntoView({
+            familiaFormRef.current?.scrollIntoView({
                 behavior: "smooth",
                 block: "start"
             });
@@ -182,7 +182,7 @@ export default function AdminDashboardPage({ admin }) {
             setIdFamiliaHighlight(familyId);
 
             setTimeout(() => {
-                scrollToFamilyCard(familyId);
+                scrollToFamiliaCard(familyId);
             }, 0);
 
             setTimeout(() => {
@@ -216,7 +216,7 @@ export default function AdminDashboardPage({ admin }) {
                 setIdFamiliaHighlight(familyId);
 
                 setTimeout(() => {
-                    scrollToFamilyCard(familyId);
+                    scrollToFamiliaCard(familyId);
                 }, 0);
 
                 setTimeout(() => {
@@ -413,7 +413,7 @@ export default function AdminDashboardPage({ admin }) {
         setCicloFormSuccess("");
     };
 
-    const scrollToFamilyCard = idFamilia => {
+    const scrollToFamiliaCard = idFamilia => {
         const familyCard = document.getElementById(`family-card-${idFamilia}`);
 
         familyCard?.scrollIntoView({
@@ -518,7 +518,7 @@ export default function AdminDashboardPage({ admin }) {
 
                         {!selectedFamiliaForCiclos ? (
                             <AdminFamiliasPanel
-                                familyFormRef={familyFormRef}
+                                familiaFormRef={familiaFormRef}
                                 editFamilia={editFamilia}
                                 familiaFormData={familiaFormData}
                                 familiaFormError={familiaFormError}

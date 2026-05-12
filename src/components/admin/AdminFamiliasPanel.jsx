@@ -2,7 +2,7 @@ import AdminFamilyForm from "./AdminFamilyForm";
 import AdminFamiliaGrid from "./AdminFamiliaGrid";
 
 function AdminFamiliasPanel({
-	familyFormRef,
+	familiaFormRef,
 	editFamilia,
 	familiaFormData,
 	familiaFormError,
@@ -26,7 +26,7 @@ function AdminFamiliasPanel({
 	return (
 		<>
 			<AdminFamilyForm
-				formRef={familyFormRef}
+				formRef={familiaFormRef}
 				editingFamily={editFamilia}
 				familyFormData={familiaFormData}
 				familyFormError={familiaFormError}
