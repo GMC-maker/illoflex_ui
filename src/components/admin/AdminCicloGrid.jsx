@@ -90,8 +90,17 @@ export default function AdminCicloGrid({
                                     sx={{
                                         p: 2,
                                         borderRadius: 2.5,
-                                        border: "1px solid #dbe2f0",
-                                        backgroundColor: "#f8fbff"
+                                        border:
+                                            idCicloHighlight === ciclo.id_ciclo
+                                                ? "2px solid #1d4ed8"
+                                                : "1px solid #dbe2f0",
+                                        backgroundColor:
+                                            idCicloHighlight === ciclo.id_ciclo ? "#dbeafe" : "#f8fbff",
+                                        boxShadow:
+                                            idCicloHighlight === ciclo.id_ciclo
+                                                ? "0 0 0 3px rgba(29, 78, 216, 0.12)"
+                                                : "none",
+                                        transition: "all 0.25s ease"
                                     }}
                                 >
                                     <Stack spacing={1.5}>

@@ -10,9 +10,12 @@ import AdminFamilyForm from "../components/admin/AdminFamilyForm";
 import AdminFamiliaGrid from "../components/admin/AdminFamiliaGrid";
 
 export default function AdminDashboardPage({ admin }) {
+
+	//1
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
+	//estados de familias
     const [familias, setFamilias] = useState([]);
     const [isLoadingFamilias, setIsLoadingFamilias] = useState(true);
     const [familiasError, setFamiliasError] = useState("");
@@ -28,13 +31,13 @@ export default function AdminDashboardPage({ admin }) {
     const [editFamilia, setEditFamilia] = useState(null);
     const [familiaMenuAnchorEl, setFamiliaMenuAnchorEl] = useState(null);
     const [selectedFamiliaForMenu, setSelectedFamiliaForMenu] = useState(null);
-
-    // esto es para la familia y sus ciclos
     const [selectedFamiliaForCiclos, setSelectedFamiliaForCiclos] = useState(null);
     //resaltar la tarjeta
     const [idFamiliaHighlight, setIdFamiliaHighlight] = useState(null);
-    const [idCicloHighlight, setIdCicloHighlight] = useState(null);
 
+
+
+    
     //esto solo de los ciclos, igual que familias de FP.
     const [ciclos, setCiclos] = useState([]);
     const [isLoadingCiclos, setIsLoadingCiclos] = useState(true);
@@ -54,7 +57,9 @@ export default function AdminDashboardPage({ admin }) {
     const [editingCiclo, setEditingCiclo] = useState(null);
     const [cicloMenuAnchorEl, setCicloMenuAnchorEl] = useState(null);
     const [selectedCicloForMenu, setSelectedCicloForMenu] = useState(null);
+	const [idCicloHighlight, setIdCicloHighlight] = useState(null);
 
+	//4 refs y navegacion.
     const familyFormRef = useRef(null);
     const cicloFormRef = useRef(null);
 
