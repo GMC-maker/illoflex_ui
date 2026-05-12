@@ -4,22 +4,17 @@ import { useNavigate } from "react-router-dom";
 import { logoutAdmin } from "../services/adminAuthService";
 import { createAdminCiclo, getAdminCiclos, updateAdminCiclo } from "../services/adminCicloService";
 import { createAdminFamily, getAdminFamilies, updateAdminFamily } from "../services/adminFamiliaService";
-import AdminCicloForm from "../components/admin/AdminCicloForm";
-import AdminCicloGrid from "../components/admin/AdminCicloGrid";
-import AdminFamilyForm from "../components/admin/AdminFamilyForm";
-import AdminFamiliaGrid from "../components/admin/AdminFamiliaGrid";
+import AdminCiclosPanel from "../components/admin/AdminCiclosPanel";
+import AdminFamiliasPanel from "../components/admin/AdminFamiliasPanel";
 
 export default function AdminDashboardPage({ admin }) {
-
-	//1
+    //estados generales
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
-
-	//estados de familias
+    //estados de familias
     const [familias, setFamilias] = useState([]);
     const [isLoadingFamilias, setIsLoadingFamilias] = useState(true);
     const [familiasError, setFamiliasError] = useState("");
-
     const [familiaFormData, setFamiliaFormData] = useState({
         nombre: "",
         descripcion: ""
@@ -35,14 +30,10 @@ export default function AdminDashboardPage({ admin }) {
     //resaltar la tarjeta
     const [idFamiliaHighlight, setIdFamiliaHighlight] = useState(null);
 
-
-
-    
     //esto solo de los ciclos, igual que familias de FP.
     const [ciclos, setCiclos] = useState([]);
     const [isLoadingCiclos, setIsLoadingCiclos] = useState(true);
     const [ciclosError, setCiclosError] = useState("");
-
     const [cicloFormData, setCicloFormData] = useState({
         id_familia: "",
         nombre: "",
@@ -57,12 +48,11 @@ export default function AdminDashboardPage({ admin }) {
     const [editingCiclo, setEditingCiclo] = useState(null);
     const [cicloMenuAnchorEl, setCicloMenuAnchorEl] = useState(null);
     const [selectedCicloForMenu, setSelectedCicloForMenu] = useState(null);
-	const [idCicloHighlight, setIdCicloHighlight] = useState(null);
+    const [idCicloHighlight, setIdCicloHighlight] = useState(null);
 
-	//4 refs y navegacion.
+    //4 refs y navegacion.
     const familyFormRef = useRef(null);
     const cicloFormRef = useRef(null);
-
     const navigate = useNavigate();
 
     const loadFamilias = useCallback(async () => {
@@ -130,22 +120,6 @@ export default function AdminDashboardPage({ admin }) {
         return () => clearTimeout(timeoutId);
     }, [editingCiclo]);
 
-    const handleLogout = async () => {
-        setErrorMessage("");
-        setIsLoggingOut(true);
-
-        try {
-            await logoutAdmin();
-            navigate("/admin/login", { replace: true });
-        } catch (error) {
-            setErrorMessage(
-                error?.response?.data?.mensaje || "No se pudo cerrar la sesion de administrador"
-            );
-        } finally {
-            setIsLoggingOut(false);
-        }
-    };
-
     const handleFamiliaFormChange = event => {
         const { name, value } = event.target;
 
@@ -155,51 +129,13 @@ export default function AdminDashboardPage({ admin }) {
         }));
     };
 
-    const handleCicloFormChange = event => {
-        const { name, value } = event.target;
-
-        setCicloFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
-
     const handleOpenFamiliaMenu = (event, family) => {
         setFamiliaMenuAnchorEl(event.currentTarget);
         setSelectedFamiliaForMenu(family);
     };
-
     const handleCloseFamiliaMenu = () => {
         setFamiliaMenuAnchorEl(null);
         setSelectedFamiliaForMenu(null);
-    };
-
-    const handleOpenCicloMenu = (event, ciclo) => {
-        setCicloMenuAnchorEl(event.currentTarget);
-        setSelectedCicloForMenu(ciclo);
-    };
-
-    const handleCloseCicloMenu = () => {
-        setCicloMenuAnchorEl(null);
-        setSelectedCicloForMenu(null);
-    };
-
-    const scrollToFamilyCard = idFamilia => {
-        const familyCard = document.getElementById(`family-card-${idFamilia}`);
-
-        familyCard?.scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-        });
-    };
-
-    const scrollToCicloCard = idCiclo => {
-        const cicloCard = document.getElementById(`ciclo-card-${idCiclo}`);
-
-        cicloCard?.scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-        });
     };
 
     const handleStartEditFamilia = () => {
@@ -231,34 +167,6 @@ export default function AdminDashboardPage({ admin }) {
         });
     };
 
-    const handleBackToFamilias = () => {
-        setSelectedFamiliaForCiclos(null);
-        setEditingCiclo(null);
-        setSelectedCicloForMenu(null);
-        setCicloFormError("");
-        setCicloFormSuccess("");
-    };
-
-    const handleStartEditCiclo = () => {
-        if (!selectedCicloForMenu) {
-            return;
-        }
-
-        setEditingCiclo(selectedCicloForMenu);
-        setCicloFormData({
-            id_familia: String(selectedCicloForMenu.id_familia),
-            nombre: selectedCicloForMenu.nombre,
-            nivel: selectedCicloForMenu.nivel,
-            descripcion: selectedCicloForMenu.descripcion || "",
-            duracion_horas: selectedCicloForMenu.duracion_horas
-                ? String(selectedCicloForMenu.duracion_horas)
-                : ""
-        });
-        setCicloFormError("");
-        setCicloFormSuccess("");
-        handleCloseCicloMenu();
-    };
-
     const handleCancelEditFamilia = () => {
         const familyId = editFamilia?.id_familia || null;
 
@@ -279,33 +187,6 @@ export default function AdminDashboardPage({ admin }) {
 
             setTimeout(() => {
                 setIdFamiliaHighlight(null);
-            }, 1800);
-        }
-    };
-
-    const handleCancelEditCiclo = () => {
-        const cicloId = editingCiclo?.id_ciclo || null;
-
-        setEditingCiclo(null);
-        setCicloFormData({
-            id_familia: selectedFamiliaForCiclos ? String(selectedFamiliaForCiclos.id_familia) : "",
-            nombre: "",
-            nivel: "GS",
-            descripcion: "",
-            duracion_horas: ""
-        });
-        setCicloFormError("");
-        setCicloFormSuccess("");
-
-        if (cicloId) {
-            setIdCicloHighlight(cicloId);
-
-            setTimeout(() => {
-                scrollToCicloCard(cicloId);
-            }, 0);
-
-            setTimeout(() => {
-                setIdCicloHighlight(null);
             }, 1800);
         }
     };
@@ -369,6 +250,72 @@ export default function AdminDashboardPage({ admin }) {
             );
         } finally {
             setIsCreatingFamilia(false);
+        }
+    };
+
+    const handleCicloFormChange = event => {
+        const { name, value } = event.target;
+
+        setCicloFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const handleOpenCicloMenu = (event, ciclo) => {
+        setCicloMenuAnchorEl(event.currentTarget);
+        setSelectedCicloForMenu(ciclo);
+    };
+
+    const handleCloseCicloMenu = () => {
+        setCicloMenuAnchorEl(null);
+        setSelectedCicloForMenu(null);
+    };
+
+    const handleStartEditCiclo = () => {
+        if (!selectedCicloForMenu) {
+            return;
+        }
+
+        setEditingCiclo(selectedCicloForMenu);
+        setCicloFormData({
+            id_familia: String(selectedCicloForMenu.id_familia),
+            nombre: selectedCicloForMenu.nombre,
+            nivel: selectedCicloForMenu.nivel,
+            descripcion: selectedCicloForMenu.descripcion || "",
+            duracion_horas: selectedCicloForMenu.duracion_horas
+                ? String(selectedCicloForMenu.duracion_horas)
+                : ""
+        });
+        setCicloFormError("");
+        setCicloFormSuccess("");
+        handleCloseCicloMenu();
+    };
+
+    const handleCancelEditCiclo = () => {
+        const cicloId = editingCiclo?.id_ciclo || null;
+
+        setEditingCiclo(null);
+        setCicloFormData({
+            id_familia: selectedFamiliaForCiclos ? String(selectedFamiliaForCiclos.id_familia) : "",
+            nombre: "",
+            nivel: "GS",
+            descripcion: "",
+            duracion_horas: ""
+        });
+        setCicloFormError("");
+        setCicloFormSuccess("");
+
+        if (cicloId) {
+            setIdCicloHighlight(cicloId);
+
+            setTimeout(() => {
+                scrollToCicloCard(cicloId);
+            }, 0);
+
+            setTimeout(() => {
+                setIdCicloHighlight(null);
+            }, 1800);
         }
     };
 
@@ -440,6 +387,48 @@ export default function AdminDashboardPage({ admin }) {
         } finally {
             setIsCreatingCiclo(false);
         }
+    };
+
+    const handleLogout = async () => {
+        setErrorMessage("");
+        setIsLoggingOut(true);
+
+        try {
+            await logoutAdmin();
+            navigate("/admin/login", { replace: true });
+        } catch (error) {
+            setErrorMessage(
+                error?.response?.data?.mensaje || "No se pudo cerrar la sesion de administrador"
+            );
+        } finally {
+            setIsLoggingOut(false);
+        }
+    };
+
+    const handleBackToFamilias = () => {
+        setSelectedFamiliaForCiclos(null);
+        setEditingCiclo(null);
+        setSelectedCicloForMenu(null);
+        setCicloFormError("");
+        setCicloFormSuccess("");
+    };
+
+    const scrollToFamilyCard = idFamilia => {
+        const familyCard = document.getElementById(`family-card-${idFamilia}`);
+
+        familyCard?.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+    };
+
+    const scrollToCicloCard = idCiclo => {
+        const cicloCard = document.getElementById(`ciclo-card-${idCiclo}`);
+
+        cicloCard?.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
     };
 
     return (
@@ -528,34 +517,28 @@ export default function AdminDashboardPage({ admin }) {
                         </Paper>
 
                         {!selectedFamiliaForCiclos ? (
-                            <>
-                                <AdminFamilyForm
-                                    formRef={familyFormRef}
-                                    editingFamily={editFamilia}
-                                    familyFormData={familiaFormData}
-                                    familyFormError={familiaFormError}
-                                    familyFormSuccess={familiaFormSuccess}
-                                    isCreatingFamily={isCreatingFamilia}
-                                    isUpdatingFamily={isUpdatingFamilia}
-                                    onChange={handleFamiliaFormChange}
-                                    onSubmit={handleSubmitFamiliaForm}
-                                    onCancelEdit={handleCancelEditFamilia}
-                                />
-
-                                <AdminFamiliaGrid
-                                    families={familias}
-                                    isLoadingFamilies={isLoadingFamilias}
-                                    familiesError={familiasError}
-                                    familyMenuAnchorEl={familiaMenuAnchorEl}
-                                    selectedFamilyForMenu={selectedFamiliaForMenu}
-                                    onOpenFamilyMenu={handleOpenFamiliaMenu}
-                                    onCloseFamilyMenu={handleCloseFamiliaMenu}
-                                    onStartEditFamily={handleStartEditFamilia}
-                                    onViewFamilyCiclos={handleViewFamiliaCiclos}
-									idFamiliaHighlight={idFamiliaHighlight}
-
-                                />
-                            </>
+                            <AdminFamiliasPanel
+                                familyFormRef={familyFormRef}
+                                editFamilia={editFamilia}
+                                familiaFormData={familiaFormData}
+                                familiaFormError={familiaFormError}
+                                familiaFormSuccess={familiaFormSuccess}
+                                isCreatingFamilia={isCreatingFamilia}
+                                isUpdatingFamilia={isUpdatingFamilia}
+                                handleFamiliaFormChange={handleFamiliaFormChange}
+                                handleSubmitFamiliaForm={handleSubmitFamiliaForm}
+                                handleCancelEditFamilia={handleCancelEditFamilia}
+                                familias={familias}
+                                isLoadingFamilias={isLoadingFamilias}
+                                familiasError={familiasError}
+                                familiaMenuAnchorEl={familiaMenuAnchorEl}
+                                selectedFamiliaForMenu={selectedFamiliaForMenu}
+                                handleOpenFamiliaMenu={handleOpenFamiliaMenu}
+                                handleCloseFamiliaMenu={handleCloseFamiliaMenu}
+                                handleStartEditFamilia={handleStartEditFamilia}
+                                handleViewFamiliaCiclos={handleViewFamiliaCiclos}
+                                idFamiliaHighlight={idFamiliaHighlight}
+                            />
                         ) : (
                             <>
                                 <Stack
@@ -592,30 +575,26 @@ export default function AdminDashboardPage({ admin }) {
                                     </Button>
                                 </Stack>
 
-                                <AdminCicloForm
-                                    formRef={cicloFormRef}
+                                <AdminCiclosPanel
+                                    cicloFormRef={cicloFormRef}
                                     editingCiclo={editingCiclo}
                                     cicloFormData={cicloFormData}
                                     cicloFormError={cicloFormError}
                                     cicloFormSuccess={cicloFormSuccess}
                                     isCreatingCiclo={isCreatingCiclo}
                                     isUpdatingCiclo={isUpdatingCiclo}
-                                    families={[selectedFamiliaForCiclos]}
-                                    onChange={handleCicloFormChange}
-                                    onSubmit={handleSubmitCicloForm}
-                                    onCancelEdit={handleCancelEditCiclo}
-                                />
-
-                                <AdminCicloGrid
-                                    selectedFamilyForCiclos={selectedFamiliaForCiclos}
+                                    selectedFamiliaForCiclos={selectedFamiliaForCiclos}
                                     ciclos={ciclos}
                                     isLoadingCiclos={isLoadingCiclos}
                                     ciclosError={ciclosError}
                                     cicloMenuAnchorEl={cicloMenuAnchorEl}
-                                    onOpenCicloMenu={handleOpenCicloMenu}
-                                    onCloseCicloMenu={handleCloseCicloMenu}
-                                    onStartEditCiclo={handleStartEditCiclo}
-									idCicloHighlight={idCicloHighlight}
+                                    handleCicloFormChange={handleCicloFormChange}
+                                    handleSubmitCicloForm={handleSubmitCicloForm}
+                                    handleCancelEditCiclo={handleCancelEditCiclo}
+                                    handleOpenCicloMenu={handleOpenCicloMenu}
+                                    handleCloseCicloMenu={handleCloseCicloMenu}
+                                    handleStartEditCiclo={handleStartEditCiclo}
+                                    idCicloHighlight={idCicloHighlight}
                                 />
                             </>
                         )}
