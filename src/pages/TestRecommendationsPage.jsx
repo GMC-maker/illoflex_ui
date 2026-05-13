@@ -2,6 +2,11 @@ import { Alert, Box, Button, Container, Paper, Stack, Typography } from "@mui/ma
 import { Link as RouterLink, useLocation } from "react-router-dom";
 
 const MAX_COMPATIBILITY = 3;
+const CATALOG_URLS_BY_LEVEL = {
+    GS: "https://www.juntadeandalucia.es/educacion/portales/web/formacion-profesional-andaluza/grado-superior-catalogo-de-titulos",
+    GM: "https://www.juntadeandalucia.es/educacion/portales/web/formacion-profesional-andaluza/grado-medio-catalogo-de-titulos",
+    GB: "https://www.juntadeandalucia.es/educacion/portales/web/formacion-profesional-andaluza/grado-basico-catalogo-de-titulos"
+};
 
 // Convierte la afinidad interna en una lectura visual sencilla para el usuario.
 function renderCompatibilityStars(compatibility) {
@@ -10,6 +15,10 @@ function renderCompatibilityStars(compatibility) {
     return Array.from({ length: MAX_COMPATIBILITY }, (_, index) =>
         index < activeStars ? "★" : "☆"
     ).join("");
+}
+
+function getCatalogUrlByLevel(level) {
+    return CATALOG_URLS_BY_LEVEL[level] || null;
 }
 
 export default function TestRecommendationsPage() {
@@ -133,7 +142,6 @@ export default function TestRecommendationsPage() {
                     >
                         {recommendations.map((recommendation, index) => {
                             const family = recommendation.familia;
-                            const cycles = recommendation.ciclos || [];
 
                             return (
                                 <Paper
@@ -267,47 +275,70 @@ export default function TestRecommendationsPage() {
                                                     gap: 2
                                                 }}
                                             >
-                                                {cycles.map(cycle => (
-                                                    <Box
-                                                        key={cycle.id_ciclo}
-                                                        sx={{
-                                                            p: 2,
-                                                            borderRadius: 2.5,
-                                                            border: "1px solid #dbe2f0",
-                                                            backgroundColor: "#f8fbff"
-                                                        }}
-                                                    >
-                                                        <Stack spacing={1}>
-                                                            <Typography
-                                                                variant="body1"
-                                                                sx={{
-                                                                    color: "#1f2937",
-                                                                    fontWeight: 700
-                                                                }}
-                                                            >
-                                                                {cycle.nombre}
-                                                            </Typography>
-                                                            <Typography
-                                                                variant="body2"
-                                                                sx={{
-                                                                    color: "#475569"
-                                                                }}
-                                                            >
-                                                                {cycle.descripcion}
-                                                            </Typography>
-                                                            <Typography
-                                                                variant="caption"
-                                                                sx={{
-                                                                    color: "#64748b",
-                                                                    display: "block"
-                                                                }}
-                                                            >
-                                                                {cycle.nivel} · {cycle.duracion_horas}{" "}
-                                                                horas
-                                                            </Typography>
-                                                        </Stack>
-                                                    </Box>
-                                                ))}
+                                                {cycles.map(cycle => {
+                                                    const catalogUrl = getCatalogUrlByLevel(cycle.nivel);
+
+                                                    return (
+                                                        <Box
+                                                            key={cycle.id_ciclo}
+                                                            sx={{
+                                                                p: 2,
+                                                                borderRadius: 2.5,
+                                                                border: "1px solid #dbe2f0",
+                                                                backgroundColor: "#f8fbff"
+                                                            }}
+                                                        >
+                                                            <Stack spacing={1}>
+                                                                <Typography
+                                                                    variant="body1"
+                                                                    sx={{
+                                                                        color: "#1f2937",
+                                                                        fontWeight: 700
+                                                                    }}
+                                                                >
+                                                                    {cycle.nombre}
+                                                                </Typography>
+                                                                <Typography
+                                                                    variant="body2"
+                                                                    sx={{
+                                                                        color: "#475569"
+                                                                    }}
+                                                                >
+                                                                    {cycle.descripcion}
+                                                                </Typography>
+                                                                <Typography
+                                                                    variant="caption"
+                                                                    sx={{
+                                                                        color: "#64748b",
+                                                                        display: "block"
+                                                                    }}
+                                                                >
+                                                                    {cycle.nivel} · {cycle.duracion_horas} horas
+                                                                </Typography>
+
+                                                                {catalogUrl ? (
+                                                                    <Button
+                                                                        component="a"
+                                                                        href={catalogUrl}
+                                                                        target="_blank"
+                                                                        rel="noreferrer"
+                                                                        variant="outlined"
+                                                                        size="small"
+                                                                        sx={{
+                                                                            alignSelf: "flex-start",
+                                                                            textTransform: "none",
+                                                                            fontWeight: 600,
+                                                                            borderRadius: 999,
+                                                                            px: 2
+                                                                        }}
+                                                                    >
+                                                                        Ver detalle oficial
+                                                                    </Button>
+                                                                ) : null}
+                                                            </Stack>
+                                                        </Box>
+                                                    );
+                                                })}
                                             </Box>
                                         ) : (
                                             <Alert severity="info">
