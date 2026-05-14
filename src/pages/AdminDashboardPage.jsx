@@ -1,15 +1,27 @@
 import { useState } from "react";
-import { Alert, Box, Button, Container, Paper, Stack, Typography } from "@mui/material";
+import {
+    Alert,
+    Box,
+    Button,
+    Container,
+    Paper,
+    Stack,
+    ToggleButton,
+    ToggleButtonGroup,
+    Typography
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { logoutAdmin } from "../services/adminAuthService";
 import AdminCiclosPanel from "../components/admin/AdminCiclosPanel";
 import AdminFamiliasPanel from "../components/admin/AdminFamiliasPanel";
+import AdminPreguntasPanel from "../components/admin/AdminPreguntasPanel";
 
 export default function AdminDashboardPage({ admin }) {
     //estados generales
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
     const [selectedFamiliaForCiclos, setSelectedFamiliaForCiclos] = useState(null);
+    const [selectedAdminSection, setSelectedAdminSection] = useState("preguntas");
 
     const navigate = useNavigate();
 
@@ -34,6 +46,15 @@ export default function AdminDashboardPage({ admin }) {
     };
 
     const handleBackToFamilias = () => {
+        setSelectedFamiliaForCiclos(null);
+    };
+
+    const handleAdminSectionChange = (event, nextSection) => {
+        if (!nextSection) {
+            return;
+        }
+
+        setSelectedAdminSection(nextSection);
         setSelectedFamiliaForCiclos(null);
     };
 
@@ -109,20 +130,50 @@ export default function AdminDashboardPage({ admin }) {
                                 backgroundColor: "#f8fbff"
                             }}
                         >
-                            <Stack spacing={1.5}>
-                                <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                                    Estado del area admin
-                                </Typography>
+                            <Stack spacing={2}>
+                                <Stack spacing={0.75}>
+                                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                                        Panel de gestion
+                                    </Typography>
 
-                                <Typography sx={{ color: "#475569" }}>
-                                    {selectedFamiliaForCiclos
-                                        ? `Gestionando ciclos de ${selectedFamiliaForCiclos.nombre}.`
-                                        : "El acceso admin ya funciona correctamente. Ahora el panel ya esta conectado con el listado de familias profesionales."}
-                                </Typography>
+                                    <Typography sx={{ color: "#475569" }}>
+                                        Selecciona el bloque con el que quieres trabajar en el area
+                                        admin.
+                                    </Typography>
+                                </Stack>
+
+                                <ToggleButtonGroup
+                                    value={selectedAdminSection}
+                                    exclusive
+                                    onChange={handleAdminSectionChange}
+                                    sx={{
+                                        alignSelf: "flex-start",
+                                        borderRadius: 3,
+                                        overflow: "hidden",
+                                        "& .MuiToggleButtonGroup-grouped": {
+                                            textTransform: "none",
+                                            fontWeight: 600,
+                                            px: 2.5,
+                                            py: 1,
+                                            border: "2px solid #94a3b8",
+                                            borderRadius: "0 !important"
+                                        },
+                                        "& .MuiToggleButtonGroup-grouped.Mui-selected": {
+                                            backgroundColor: "#e0ecff",
+                                            color: "#1d4ed8"
+                                        }
+                                    }}
+                                >
+                                    <ToggleButton value="preguntas">Preguntas del test</ToggleButton>
+
+                                    <ToggleButton value="catalogo">Familias y ciclos</ToggleButton>
+                                </ToggleButtonGroup>
                             </Stack>
                         </Paper>
 
-                        {!selectedFamiliaForCiclos ? (
+                        {selectedAdminSection === "preguntas" ? (
+                            <AdminPreguntasPanel />
+                        ) : !selectedFamiliaForCiclos ? (
                             <AdminFamiliasPanel onViewFamiliaCiclos={handleViewFamiliaCiclos} />
                         ) : (
                             <AdminCiclosPanel
