@@ -9,7 +9,7 @@ const CATALOG_URLS_BY_LEVEL = {
 };
 
 // Convierte la afinidad interna en una lectura visual sencilla para el usuario.
-function renderCompatibilityStars(compatibility) {
+function compatibilityStars(compatibility) {
     const activeStars = Number(compatibility || 0);
 
     return Array.from({ length: MAX_COMPATIBILITY }, (_, index) =>
@@ -26,8 +26,8 @@ export default function TestRecommendationsPage() {
     const result = location.state?.result || null;
     const recommendations = result?.recomendaciones || [];
 
-    function handleScrollToFamily(familyId) {
-        const targetSection = document.getElementById(`family-cycles-${familyId}`);
+    function handleScrollToFamilia(familiaId) {
+        const targetSection = document.getElementById(`familia-ciclos-${familiaId}`);
 
         if (!targetSection) {
             return;
@@ -141,13 +141,13 @@ export default function TestRecommendationsPage() {
                         }}
                     >
                         {recommendations.map((recommendation, index) => {
-                            const family = recommendation.familia;
+                            const familia = recommendation.familia;
 
                             return (
                                 <Paper
-                                    key={family.id_familia}
+                                    key={familia.id_familia}
                                     elevation={0}
-                                    onClick={() => handleScrollToFamily(family.id_familia)}
+                                    onClick={() => handleScrollToFamilia(familia.id_familia)}
                                     sx={{
                                         p: 3,
                                         borderRadius: 3,
@@ -198,10 +198,10 @@ export default function TestRecommendationsPage() {
                                         </Stack>
 
                                         <Typography variant="h3" sx={{ fontSize: "1.25rem" }}>
-                                            {family.nombre}
+                                            {familia.nombre}
                                         </Typography>
                                         <Typography variant="body2" sx={{ color: "#475569" }}>
-                                            {family.descripcion}
+                                            {familia.descripcion}
                                         </Typography>
 
                                         <Box>
@@ -222,7 +222,7 @@ export default function TestRecommendationsPage() {
                                                     letterSpacing: "0.12em"
                                                 }}
                                             >
-                                                {renderCompatibilityStars(recommendation.grado_afinidad)}
+                                                {compatibilityStars(recommendation.grado_afinidad)}
                                             </Typography>
                                         </Box>
                                     </Stack>
@@ -246,13 +246,13 @@ export default function TestRecommendationsPage() {
                             </Typography>
 
                             {recommendations.map(recommendation => {
-                                const family = recommendation.familia;
+                                const familia = recommendation.familia;
                                 const ciclos = recommendation.ciclos || [];
 
                                 return (
                                     <Box
-                                        key={family.id_familia}
-                                        id={`family-cycles-${family.id_familia}`}
+                                        key={familia.id_familia}
+                                        id={`familia-ciclos-${familia.id_familia}`}
                                     >
                                         <Typography
                                             variant="h3"
@@ -261,7 +261,7 @@ export default function TestRecommendationsPage() {
                                                 mb: 1.5
                                             }}
                                         >
-                                            {family.nombre}
+                                            {familia.nombre}
                                         </Typography>
 
                                         {ciclos.length > 0 ? (
