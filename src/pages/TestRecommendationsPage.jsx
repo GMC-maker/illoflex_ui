@@ -11,11 +11,19 @@ const CATALOG_URLS_BY_LEVEL = {
 // Convierte la afinidad interna en una lectura visual sencilla para el usuario.
 function compatibilityStars(compatibility) {
     const activeStars = Number(compatibility || 0);
+    let stars = "";
 
-    return Array.from({ length: MAX_COMPATIBILITY }, (_, index) =>
-        index < activeStars ? "★" : "☆"
-    ).join("");
+    for (let index = 0; index < MAX_COMPATIBILITY; index++) {
+        if (index < activeStars) {
+            stars += "★";
+        } else {
+            stars += "☆";
+        }
+    }
+
+    return stars;
 }
+
 
 function getCatalogUrlByLevel(level) {
     return CATALOG_URLS_BY_LEVEL[level] || null;

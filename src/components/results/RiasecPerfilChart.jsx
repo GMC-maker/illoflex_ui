@@ -22,7 +22,7 @@ function buildSegments(normalizedScores) {
 	});
 }
 
-export default function RiasecDonutChart({
+export default function RiasecPerfilChart({
 	normalizedScores,
 	principalProfileName,
 }) {
