@@ -247,7 +247,7 @@ export default function TestRecommendationsPage() {
 
                             {recommendations.map(recommendation => {
                                 const family = recommendation.familia;
-                                const cycles = recommendation.ciclos || [];
+                                const ciclos = recommendation.ciclos || [];
 
                                 return (
                                     <Box
@@ -264,7 +264,7 @@ export default function TestRecommendationsPage() {
                                             {family.nombre}
                                         </Typography>
 
-                                        {cycles.length > 0 ? (
+                                        {ciclos.length > 0 ? (
                                             <Box
                                                 sx={{
                                                     display: "grid",
@@ -275,20 +275,21 @@ export default function TestRecommendationsPage() {
                                                     gap: 2
                                                 }}
                                             >
-                                                {cycles.map(cycle => {
-                                                    const catalogUrl = getCatalogUrlByLevel(cycle.nivel);
+                                                {ciclos.map(ciclo => {
+                                                    const catalogUrl = getCatalogUrlByLevel(ciclo.nivel);
 
                                                     return (
                                                         <Box
-                                                            key={cycle.id_ciclo}
+                                                            key={ciclo.id_ciclo}
                                                             sx={{
                                                                 p: 2,
                                                                 borderRadius: 2.5,
                                                                 border: "1px solid #dbe2f0",
-                                                                backgroundColor: "#f8fbff"
+                                                                backgroundColor: "#f8fbff",
+                                                                height: "100%"
                                                             }}
                                                         >
-                                                            <Stack spacing={1}>
+                                                            <Stack spacing={1} sx={{ height: "100%" }}>
                                                                 <Typography
                                                                     variant="body1"
                                                                     sx={{
@@ -296,7 +297,7 @@ export default function TestRecommendationsPage() {
                                                                         fontWeight: 700
                                                                     }}
                                                                 >
-                                                                    {cycle.nombre}
+                                                                    {ciclo.nombre}
                                                                 </Typography>
                                                                 <Typography
                                                                     variant="body2"
@@ -304,7 +305,7 @@ export default function TestRecommendationsPage() {
                                                                         color: "#475569"
                                                                     }}
                                                                 >
-                                                                    {cycle.descripcion}
+                                                                    {ciclo.descripcion}
                                                                 </Typography>
                                                                 <Typography
                                                                     variant="caption"
@@ -313,9 +314,9 @@ export default function TestRecommendationsPage() {
                                                                         display: "block"
                                                                     }}
                                                                 >
-                                                                    {cycle.nivel} · {cycle.duracion_horas} horas
+                                                                    {ciclo.nivel} ·{" "}
+                                                                    {ciclo.duracion_horas} horas
                                                                 </Typography>
-
                                                                 {catalogUrl ? (
                                                                     <Button
                                                                         component="a"
@@ -329,7 +330,8 @@ export default function TestRecommendationsPage() {
                                                                             textTransform: "none",
                                                                             fontWeight: 600,
                                                                             borderRadius: 999,
-                                                                            px: 2
+                                                                            px: 2,
+                                                                            mt: "auto"
                                                                         }}
                                                                     >
                                                                         Ver detalle oficial
