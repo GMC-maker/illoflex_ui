@@ -15,13 +15,13 @@ export async function getTestResponses(uuid) {
 	return response.data.datos;
 }
 
-export async function createTestResponse(uuid, payload) {
-	const response = await api.post(`/tests/${uuid}/respuestas`, payload);
+export async function createTestResponse(uuid, datosRespuestaTest) {
+	const response = await api.post(`/tests/${uuid}/respuestas`, datosRespuestaTest);
 	return response.data.datos;
 }
 
-export async function updateTestResponse(uuid, responseId, payload) {
-	const response = await api.put(`/tests/${uuid}/respuestas/${responseId}`, payload);
+export async function updateTestResponse(uuid, responseId, datosRespuestaTest) {
+	const response = await api.put(`/tests/${uuid}/respuestas/${responseId}`, datosRespuestaTest);
 	return response.data.datos;
 }
 
