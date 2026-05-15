@@ -19,12 +19,15 @@ import {
 
 import { useCallback, useEffect, useState } from "react";
 import { getAdminQuestions } from "../../services/adminPreguntaService";
+import AdminPreguntaFormDialog from "./AdminPreguntaFormDialog";
 
 function AdminPreguntasPanel() {
     const [preguntas, setPreguntas] = useState([]);
     const [isLoadingPreguntas, setIsLoadingPreguntas] = useState(true);
     const [preguntasError, setPreguntasError] = useState("");
     const [idPreguntaSeleccionada, setIdPreguntaSeleccionada] = useState(null);
+    const [questionForEdit, setQuestionForEdit] = useState(null);
+    const [questionDialogOpen, setQuestionDialogOpen] = useState(false);
 
     const loadPreguntas = useCallback(async () => {
         try {
@@ -45,8 +48,13 @@ function AdminPreguntasPanel() {
         loadPreguntas();
     }, [loadPreguntas]);
 
-    const handleSelectQuestionForEdit = pregunta => {
-        setIdPreguntaSeleccionada(pregunta.id_pregunta);
+    const handleQuestionForEdit = pregunta => {
+        setQuestionForEdit(pregunta);
+        setQuestionDialogOpen(true);
+    };
+    const handleCloseQuestionDialog = () => {
+        setQuestionDialogOpen(false);
+        setQuestionForEdit(null);
     };
 
     if (isLoadingPreguntas) {
@@ -311,7 +319,7 @@ function AdminPreguntasPanel() {
                                     >
                                         <Tooltip title="Preparar edicion de la pregunta">
                                             <IconButton
-                                                onClick={() => handleSelectQuestionForEdit(pregunta)}
+                                                onClick={() => handleQuestionForEdit(pregunta)}
                                                 aria-label={`Editar pregunta ${pregunta.orden}`}
                                             >
                                                 <EditOutlined />
@@ -322,6 +330,11 @@ function AdminPreguntasPanel() {
                             ))}
                         </TableBody>
                     </Table>
+                    <AdminPreguntaFormDialog
+                        open={questionDialogOpen}
+                        questionForEdit={questionForEdit}
+                        onClose={handleCloseQuestionDialog}
+                    />
                 </TableContainer>
             )}
         </Stack>
