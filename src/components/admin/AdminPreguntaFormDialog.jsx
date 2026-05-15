@@ -42,9 +42,7 @@ const initialQuestionForm = questionForEdit => {
 };
 
 function AdminPreguntaFormDialog({ open, questionForEdit, onClose }) {
-    const [questionFormData, setQuestionFormData] = useState(
-        initialQuestionForm(questionForEdit)
-    );
+    const [questionFormData, setQuestionFormData] = useState(initialQuestionForm(questionForEdit));
     const [questionFormError, setQuestionFormError] = useState("");
     const [isSavingQuestion, setIsSavingQuestion] = useState(false);
 
@@ -90,21 +88,14 @@ function AdminPreguntaFormDialog({ open, questionForEdit, onClose }) {
             await new Promise(resolve => setTimeout(resolve, 800));
             onClose();
         } catch (error) {
-            setQuestionFormError(
-                error?.response?.data?.mensaje || "No se pudo guardar la pregunta"
-            );
+            setQuestionFormError(error?.response?.data?.mensaje || "No se pudo guardar la pregunta");
         } finally {
             setIsSavingQuestion(false);
         }
     };
 
     return (
-        <Dialog
-            open={open}
-            onClose={isSavingQuestion ? undefined : onClose}
-            fullWidth
-            maxWidth="md"
-        >
+        <Dialog open={open} onClose={isSavingQuestion ? undefined : onClose} fullWidth maxWidth="md">
             <DialogTitle>Editar pregunta</DialogTitle>
 
             <DialogContent dividers>
@@ -177,11 +168,7 @@ function AdminPreguntaFormDialog({ open, questionForEdit, onClose }) {
             </DialogContent>
 
             <DialogActions sx={{ px: 3, py: 2 }}>
-                <Button
-                    onClick={onClose}
-                    disabled={isSavingQuestion}
-                    sx={{ textTransform: "none" }}
-                >
+                <Button onClick={onClose} disabled={isSavingQuestion} sx={{ textTransform: "none" }}>
                     Descartar
                 </Button>
 
@@ -190,9 +177,7 @@ function AdminPreguntaFormDialog({ open, questionForEdit, onClose }) {
                     form="admin-question-form"
                     variant="contained"
                     disabled={isSavingQuestion}
-                    startIcon={
-                        isSavingQuestion ? <CircularProgress size={18} color="inherit" /> : null
-                    }
+                    startIcon={isSavingQuestion ? <CircularProgress size={18} color="inherit" /> : null}
                     sx={{ textTransform: "none", fontWeight: 600 }}
                 >
                     {isSavingQuestion ? "Guardando..." : "Guardar"}
