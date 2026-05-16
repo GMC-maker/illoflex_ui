@@ -18,11 +18,16 @@ import {
 } from "@mui/material";
 
 import { useCallback, useEffect, useState } from "react";
-import { getAdminQuestions, updateAdminQuestion } from "../../services/adminPreguntaService";
+import {
+    getAdminQuestions,
+    getAdminQuestionsSummary,
+    updateAdminQuestion
+} from "../../services/adminPreguntaService";
 import AdminPreguntaFormDialog from "./AdminPreguntaFormDialog";
 
 function AdminPreguntasPanel() {
     const [preguntas, setPreguntas] = useState([]);
+    const [questionsSummary, setQuestionsSummary] = useState(null);
     const [isLoadingPreguntas, setIsLoadingPreguntas] = useState(true);
     const [preguntasError, setPreguntasError] = useState("");
     const [idPreguntaSeleccionada, setIdPreguntaSeleccionada] = useState(null);
@@ -31,11 +36,17 @@ function AdminPreguntasPanel() {
 
     const loadPreguntas = useCallback(async () => {
         try {
-            const questionsData = await getAdminQuestions();
+            const [questionsData, summaryData] = await Promise.all([
+                getAdminQuestions(),
+                getAdminQuestionsSummary()
+            ]);
+
             setPreguntas(questionsData);
+            setQuestionsSummary(summaryData);
             setPreguntasError("");
         } catch (error) {
             setPreguntas([]);
+            setQuestionsSummary(null);
             setPreguntasError(
                 error?.response?.data?.mensaje || "No se pudieron cargar las preguntas del test"
             );
@@ -49,7 +60,7 @@ function AdminPreguntasPanel() {
     }, [loadPreguntas]);
 
     const handleQuestionForEdit = pregunta => {
-        setIdPreguntaSeleccionada(pregunta.id_pregunta)
+        setIdPreguntaSeleccionada(pregunta.id_pregunta);
         setQuestionForEdit(pregunta);
         setQuestionDialogOpen(true);
         setIdPreguntaSeleccionada(null);
@@ -126,6 +137,40 @@ function AdminPreguntasPanel() {
                 </IconButton>
             </Stack>
 
+            {questionsSummary ? (
+                <Paper
+                    elevation={0}
+                    sx={{
+                        p: 2,
+                        borderRadius: 3,
+                        border: "1px solid #dbe2f0",
+                        backgroundColor: "#f8fbff"
+                    }}
+                >
+                    <Stack spacing={1}>
+                        <Typography sx={{ fontWeight: 700, color: "#0f172a" }}>
+                            Equilibrio actual del banco de preguntas
+                        </Typography>
+
+                        <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
+                            <Typography sx={{ color: "#334155" }}>
+                                Preguntas activas: {questionsSummary.preguntas_activas}
+                            </Typography>
+
+                            <Typography sx={{ color: "#334155" }}>
+                                Opciones activas: {questionsSummary.opciones_activas}
+                            </Typography>
+                        </Stack>
+
+                        <Typography sx={{ color: "#334155" }}>
+                            R: {questionsSummary.dimensiones.R} | I: {questionsSummary.dimensiones.I} |
+                            A: {questionsSummary.dimensiones.A} | S: {questionsSummary.dimensiones.S} |
+                            E: {questionsSummary.dimensiones.E} | C: {questionsSummary.dimensiones.C}
+                        </Typography>
+                    </Stack>
+                </Paper>
+            ) : null}
+
             {preguntas.length === 0 ? (
                 <Alert severity="info">No hay preguntas disponibles en este momento.</Alert>
             ) : (
@@ -135,11 +180,13 @@ function AdminPreguntasPanel() {
                     sx={{
                         borderRadius: 3,
                         border: "1px solid #dbe2f0",
-                        overflow: "hidden"
+                        overflowX: "auto",
+                        overflowY: "hidden"
                     }}
                 >
                     <Table
                         sx={{
+                            minWidth: 980,
                             tableLayout: "fixed",
                             "& th": {
                                 whiteSpace: "nowrap"
@@ -192,13 +239,13 @@ function AdminPreguntasPanel() {
 
                                 <TableCell
                                     sx={{
-                                        width: "12%",
+                                        width: "110px",
                                         fontWeight: 700,
                                         color: "#0f172a",
                                         fontSize: { xs: "0.76rem", sm: "0.82rem", md: "0.88rem" },
                                         whiteSpace: "nowrap",
-                                        textAlign: "right",
-                                        px: { xs: 1.25, sm: 2 }
+                                        textAlign: "center",
+                                        px: { xs: 1, sm: 1.5 }
                                     }}
                                 >
                                     Activa
@@ -206,13 +253,13 @@ function AdminPreguntasPanel() {
 
                                 <TableCell
                                     sx={{
-                                        width: "8%",
+                                        width: "110px",
                                         fontWeight: 700,
                                         color: "#0f172a",
                                         fontSize: { xs: "0.76rem", sm: "0.82rem", md: "0.88rem" },
                                         whiteSpace: "nowrap",
-                                        textAlign: "right",
-                                        px: { xs: 1.25, sm: 2 }
+                                        textAlign: "center",
+                                        px: { xs: 1, sm: 1.5 }
                                     }}
                                 >
                                     Acciones
@@ -306,9 +353,9 @@ function AdminPreguntasPanel() {
                                     <TableCell
                                         sx={{
                                             verticalAlign: "top",
-                                            textAlign: "right",
-                                            px: { xs: 1, sm: 1.5 },
-                                            py: 2
+                                            textAlign: "center",
+                                            px: { xs: 0.75, sm: 1 },
+                                            py: 1.5
                                         }}
                                     >
                                         <Switch
@@ -323,17 +370,18 @@ function AdminPreguntasPanel() {
                                     <TableCell
                                         sx={{
                                             verticalAlign: "top",
-                                            textAlign: "right",
-                                            px: { xs: 1, sm: 1.5 },
-                                            py: 2
+                                            textAlign: "center",
+                                            px: { xs: 0.75, sm: 1 },
+                                            py: 1.5
                                         }}
                                     >
                                         <Tooltip title="Preparar edicion de la pregunta">
                                             <IconButton
                                                 onClick={() => handleQuestionForEdit(pregunta)}
                                                 aria-label={`Editar pregunta ${pregunta.orden}`}
+                                                size="small"
                                             >
-                                                <EditOutlined />
+                                                <EditOutlined fontSize="small" />
                                             </IconButton>
                                         </Tooltip>
                                     </TableCell>
