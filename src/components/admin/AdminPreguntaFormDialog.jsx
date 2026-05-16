@@ -41,7 +41,7 @@ const initialQuestionForm = questionForEdit => {
     };
 };
 
-function AdminPreguntaFormDialog({ open, questionForEdit, onClose }) {
+function AdminPreguntaFormDialog({ open, questionForEdit, onClose, onSave }) {
     const [questionFormData, setQuestionFormData] = useState(initialQuestionForm(questionForEdit));
     const [questionFormError, setQuestionFormError] = useState("");
     const [isSavingQuestion, setIsSavingQuestion] = useState(false);
@@ -85,7 +85,7 @@ function AdminPreguntaFormDialog({ open, questionForEdit, onClose }) {
         setIsSavingQuestion(true);
 
         try {
-            await new Promise(resolve => setTimeout(resolve, 800));
+            await onSave(questionFormData);
             onClose();
         } catch (error) {
             setQuestionFormError(error?.response?.data?.mensaje || "No se pudo guardar la pregunta");
@@ -121,7 +121,7 @@ function AdminPreguntaFormDialog({ open, questionForEdit, onClose }) {
                             label="Orden"
                             name="orden"
                             value={questionFormData.orden}
-                            onChange={handleQuestionFieldChange}
+                            disabled
                             sx={{ width: { xs: "100%", sm: 140 } }}
                         />
                     </Stack>

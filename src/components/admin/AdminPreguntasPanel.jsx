@@ -18,7 +18,7 @@ import {
 } from "@mui/material";
 
 import { useCallback, useEffect, useState } from "react";
-import { getAdminQuestions } from "../../services/adminPreguntaService";
+import { getAdminQuestions, updateAdminQuestion } from "../../services/adminPreguntaService";
 import AdminPreguntaFormDialog from "./AdminPreguntaFormDialog";
 
 function AdminPreguntasPanel() {
@@ -49,12 +49,23 @@ function AdminPreguntasPanel() {
     }, [loadPreguntas]);
 
     const handleQuestionForEdit = pregunta => {
+        setIdPreguntaSeleccionada(pregunta.id_pregunta)
         setQuestionForEdit(pregunta);
         setQuestionDialogOpen(true);
+        setIdPreguntaSeleccionada(null);
     };
     const handleCloseQuestionDialog = () => {
         setQuestionDialogOpen(false);
         setQuestionForEdit(null);
+    };
+
+    const handleSaveQuestion = async questionFormData => {
+        if (!questionForEdit) {
+            return;
+        }
+
+        await updateAdminQuestion(questionForEdit.id_pregunta, questionFormData);
+        await loadPreguntas();
     };
 
     if (isLoadingPreguntas) {
@@ -334,6 +345,7 @@ function AdminPreguntasPanel() {
                         open={questionDialogOpen}
                         questionForEdit={questionForEdit}
                         onClose={handleCloseQuestionDialog}
+                        onSave={handleSaveQuestion}
                     />
                 </TableContainer>
             )}
