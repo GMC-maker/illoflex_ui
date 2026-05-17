@@ -18,7 +18,7 @@ export default function TestHomePage() {
 			saveTestUuid(testData.uuid);
 			navigate("/test/flujo");
 		} catch (error) {
-			let message = "No se pudo iniciar el test. Inténtalo de nuevo.";
+			let message = "No se pudo iniciar el test. Intentalo de nuevo.";
 
 			if (error.response && error.response.data && error.response.data.mensaje) {
 				message = error.response.data.mensaje;
@@ -35,10 +35,11 @@ export default function TestHomePage() {
 			sx={{
 				minHeight: "calc(100vh - 64px)",
 				display: "flex",
-				alignItems: "center",
+				alignItems: "flex-start",
 				background:
 					"linear-gradient(180deg, #f8fbff 0%, #eef4ff 50%, #f6f7fb 100%)",
-				py: 8,
+				pt: { xs: 3, md: 4 },
+				pb: 6,
 			}}
 		>
 			<Container maxWidth="md">
@@ -80,8 +81,9 @@ export default function TestHomePage() {
 								fontSize: { xs: "1rem", md: "1.1rem" },
 							}}
 						>
-							Responde unas preguntas sobre lo que te gusta y cómo prefieres trabajar.
-							IlloFlex analizará tus respuestas y te ayudará a descubrir opciones formativas que encajan contigo.
+							Responde unas preguntas sobre lo que te gusta y como prefieres trabajar.
+							IlloFlex analizara tus respuestas y te ayudara a descubrir opciones
+							formativas que encajan contigo.
 						</Typography>
 
 						<Box
@@ -94,16 +96,16 @@ export default function TestHomePage() {
 						>
 							<Stack spacing={1.5}>
 								<Typography variant="h3" sx={{ fontSize: "1.25rem" }}>
-									Qué ocurrirá al empezar
+									Que ocurrira al empezar
 								</Typography>
 								<Typography variant="body2" sx={{ color: "#475569" }}>
-									1. Se creará un test anónimo con identificador único.
+									1. Se creara un test anonimo con identificador unico.
 								</Typography>
 								<Typography variant="body2" sx={{ color: "#475569" }}>
-									2. Irás respondiendo las preguntas del cuestionario.
+									2. Iras respondiendo las preguntas del cuestionario.
 								</Typography>
 								<Typography variant="body2" sx={{ color: "#475569" }}>
-									3. Al finalizar, se calculará tu resultado y se mostrarán
+									3. Al finalizar, se calculara tu resultado y se mostraran
 									recomendaciones.
 								</Typography>
 							</Stack>
