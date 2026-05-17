@@ -21,7 +21,8 @@ import { useCallback, useEffect, useState } from "react";
 import {
     getAdminQuestions,
     getAdminQuestionsSummary,
-    updateAdminQuestion
+    updateAdminQuestion,
+    updateAdminPreguntaStatus
 } from "../../services/adminPreguntaService";
 import AdminPreguntaFormDialog from "./AdminPreguntaFormDialog";
 
@@ -30,6 +31,7 @@ function AdminPreguntasPanel() {
     const [questionsSummary, setQuestionsSummary] = useState(null);
     const [isLoadingPreguntas, setIsLoadingPreguntas] = useState(true);
     const [preguntasError, setPreguntasError] = useState("");
+    const [preguntaUpdateStatus, setPreguntaUpdateStatus] = useState(null);
     const [idPreguntaSeleccionada, setIdPreguntaSeleccionada] = useState(null);
     const [questionForEdit, setQuestionForEdit] = useState(null);
     const [questionDialogOpen, setQuestionDialogOpen] = useState(false);
@@ -79,6 +81,26 @@ function AdminPreguntasPanel() {
         await loadPreguntas();
     };
 
+    const handleToggleQuestionStatus = async pregunta => {
+        setPreguntasError("");
+        setPreguntaUpdateStatus(pregunta.id_pregunta);
+
+        try {
+            await updateAdminPreguntaStatus(
+                pregunta.id_pregunta,
+                !pregunta.activa
+            );
+            await loadPreguntas();
+        } catch (error) {
+            setPreguntasError(
+                error?.response?.data?.mensaje ||
+                    "No se pudo actualizar el estado de la pregunta"
+            );
+        } finally {
+            setPreguntaUpdateStatus(null);
+        }
+    };
+
     if (isLoadingPreguntas) {
         return (
             <Paper
@@ -95,10 +117,6 @@ function AdminPreguntasPanel() {
                 </Stack>
             </Paper>
         );
-    }
-
-    if (preguntasError) {
-        return <Alert severity="error">{preguntasError}</Alert>;
     }
 
     return (
@@ -136,6 +154,10 @@ function AdminPreguntasPanel() {
                     <AddRounded sx={{ fontSize: 24 }} />
                 </IconButton>
             </Stack>
+
+            {preguntasError ? (
+                <Alert severity="error">{preguntasError}</Alert>
+            ) : null}
 
             {questionsSummary ? (
                 <Paper
@@ -360,7 +382,10 @@ function AdminPreguntasPanel() {
                                     >
                                         <Switch
                                             checked={pregunta.activa}
-                                            disabled
+                                            disabled={
+                                                preguntaUpdateStatus === pregunta.id_pregunta
+                                            }
+                                            onChange={() => handleToggleQuestionStatus(pregunta)}
                                             inputProps={{
                                                 "aria-label": `Estado de la pregunta ${pregunta.orden}`
                                             }}
