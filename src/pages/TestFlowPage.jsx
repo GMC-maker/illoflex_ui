@@ -218,9 +218,10 @@ export default function TestFlowPage() {
             sx={{
                 minHeight: "calc(100vh - 64px)",
                 display: "flex",
-                alignItems: "center",
+                alignItems: "flex-start",
                 background: "linear-gradient(180deg, #f8fbff 0%, #eef4ff 50%, #f6f7fb 100%)",
-                py: 8
+                pt: { xs: 3, md: 4 },
+                pb: 6
             }}
         >
             <Container maxWidth="md">
