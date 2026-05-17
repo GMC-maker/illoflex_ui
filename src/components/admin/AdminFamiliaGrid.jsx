@@ -1,8 +1,20 @@
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
-import { Alert, Box, Button, IconButton, Menu, MenuItem, Paper, Stack, Typography } from "@mui/material";
+import {
+    Alert,
+    Box,
+    Button,
+    IconButton,
+    Menu,
+    MenuItem,
+    Paper,
+    Stack,
+    Tooltip,
+    Typography
+} from "@mui/material";
 
 export default function AdminFamiliaGrid({
     families,
+    ciclos,
     isLoadingFamilies,
     familiesError,
     familyMenuAnchorEl,
@@ -10,9 +22,15 @@ export default function AdminFamiliaGrid({
     onOpenFamilyMenu,
     onCloseFamilyMenu,
     onStartEditFamily,
+    onDeleteFamily,
+    isDeletingFamily,
     onViewFamilyCiclos,
     idFamiliaHighlight
 }) {
+    const selectedFamilyHasCiclos = selectedFamilyForMenu
+        ? ciclos.some(ciclo => Number(ciclo.id_familia) === Number(selectedFamilyForMenu.id_familia))
+        : false;
+
     return (
         <Paper
             elevation={0}
@@ -125,6 +143,23 @@ export default function AdminFamiliaGrid({
                     onClose={onCloseFamilyMenu}
                 >
                     <MenuItem onClick={onStartEditFamily}>Editar</MenuItem>
+                    <Tooltip
+                        title={
+                            selectedFamilyHasCiclos
+                                ? "No se puede eliminar porque esta familia tiene ciclos asociados"
+                                : ""
+                        }
+                        placement="left"
+                    >
+                        <span>
+                            <MenuItem
+                                onClick={onDeleteFamily}
+                                disabled={isDeletingFamily || selectedFamilyHasCiclos}
+                            >
+                                Eliminar
+                            </MenuItem>
+                        </span>
+                    </Tooltip>
                 </Menu>
             </Stack>
         </Paper>

@@ -1,10 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createAdminFamily, getAdminFamilies, updateAdminFamily } from "../../services/adminFamiliaService";
+import {
+    createAdminFamily,
+    getAdminFamilies,
+    updateAdminFamily,
+    deleteAdminFamily
+} from "../../services/adminFamiliaService";
+import { getAdminCiclos } from "../../services/adminCicloService";
 import AdminFamilyForm from "./AdminFamilyForm";
 import AdminFamiliaGrid from "./AdminFamiliaGrid";
 
 function AdminFamiliasPanel({ onViewFamiliaCiclos }) {
     const [familias, setFamilias] = useState([]);
+    const [ciclos, setCiclos] = useState([]);
     const [isLoadingFamilias, setIsLoadingFamilias] = useState(true);
     const [familiasError, setFamiliasError] = useState("");
     const [familiaFormData, setFamiliaFormData] = useState({
@@ -13,6 +20,7 @@ function AdminFamiliasPanel({ onViewFamiliaCiclos }) {
     });
     const [isCreatingFamilia, setIsCreatingFamilia] = useState(false);
     const [isUpdatingFamilia, setIsUpdatingFamilia] = useState(false);
+    const [isDeletingFamilia, setIsDeletingFamilia] = useState(false);
     const [familiaFormError, setFamiliaFormError] = useState("");
     const [familiaFormSuccess, setFamiliaFormSuccess] = useState("");
     const [editFamilia, setEditFamilia] = useState(null);
@@ -24,11 +32,14 @@ function AdminFamiliasPanel({ onViewFamiliaCiclos }) {
 
     const loadFamilias = useCallback(async () => {
         try {
-            const familiasData = await getAdminFamilies();
+            const [familiasData, ciclosData] = await Promise.all([getAdminFamilies(), getAdminCiclos()]);
+
             setFamilias(familiasData);
+            setCiclos(ciclosData);
             setFamiliasError("");
         } catch (error) {
             setFamilias([]);
+            setCiclos([]);
             setFamiliasError(
                 error?.response?.data?.mensaje || "No se pudieron cargar las familias profesionales"
             );
@@ -55,6 +66,15 @@ function AdminFamiliasPanel({ onViewFamiliaCiclos }) {
 
         return () => clearTimeout(timeoutId);
     }, [editFamilia]);
+
+    const scrollToFamiliaForm = () => {
+        setTimeout(() => {
+            familiaFormRef.current?.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        }, 0);
+    };
 
     const handleFamiliaFormChange = event => {
         const { name, value } = event.target;
@@ -90,12 +110,47 @@ function AdminFamiliasPanel({ onViewFamiliaCiclos }) {
         handleCloseFamiliaMenu();
     };
 
+    const handleDeleteFamilia = async () => {
+        if (!selectedFamiliaForMenu) {
+            return;
+        }
+
+        const confirmed = window.confirm(
+            `¿Seguro que quieres eliminar la familia "${selectedFamiliaForMenu.nombre}"?`
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        setFamiliaFormError("");
+        setFamiliaFormSuccess("");
+        setIsDeletingFamilia(true);
+
+        try {
+            await deleteAdminFamily(selectedFamiliaForMenu.id_familia);
+            handleCloseFamiliaMenu();
+            setFamiliaFormSuccess("Familia profesional eliminada correctamente");
+            scrollToFamiliaForm();
+
+            setIsLoadingFamilias(true);
+            await loadFamilias();
+        } catch (error) {
+            setFamiliaFormError(
+                error?.response?.data?.mensaje || "No se pudo eliminar la familia profesional"
+            );
+            scrollToFamiliaForm();
+        } finally {
+            setIsDeletingFamilia(false);
+        }
+    };
+
     const scrollToFamiliaCard = idFamilia => {
         const familyCard = document.getElementById(`family-card-${idFamilia}`);
 
         familyCard?.scrollIntoView({
             behavior: "smooth",
-            block: "center"
+            block: "start"
         });
     };
 
@@ -136,6 +191,7 @@ function AdminFamiliasPanel({ onViewFamiliaCiclos }) {
                 await updateAdminFamily(familyId, familiaFormData);
 
                 setFamiliaFormSuccess("Familia profesional actualizada correctamente");
+                scrollToFamiliaForm();
                 setEditFamilia(null);
                 setFamiliaFormData({
                     nombre: "",
@@ -158,6 +214,7 @@ function AdminFamiliasPanel({ onViewFamiliaCiclos }) {
                 setFamiliaFormError(
                     error?.response?.data?.mensaje || "No se pudo actualizar la familia profesional"
                 );
+                scrollToFamiliaForm();
             } finally {
                 setIsUpdatingFamilia(false);
             }
@@ -174,12 +231,14 @@ function AdminFamiliasPanel({ onViewFamiliaCiclos }) {
                 descripcion: ""
             });
             setFamiliaFormSuccess("Familia profesional creada correctamente");
+            scrollToFamiliaForm();
             setIsLoadingFamilias(true);
             await loadFamilias();
         } catch (error) {
             setFamiliaFormError(
                 error?.response?.data?.mensaje || "No se pudo crear la familia profesional"
             );
+            scrollToFamiliaForm();
         } finally {
             setIsCreatingFamilia(false);
         }
@@ -202,6 +261,7 @@ function AdminFamiliasPanel({ onViewFamiliaCiclos }) {
 
             <AdminFamiliaGrid
                 families={familias}
+                ciclos={ciclos}
                 isLoadingFamilies={isLoadingFamilias}
                 familiesError={familiasError}
                 familyMenuAnchorEl={familiaMenuAnchorEl}
@@ -209,6 +269,8 @@ function AdminFamiliasPanel({ onViewFamiliaCiclos }) {
                 onOpenFamilyMenu={handleOpenFamiliaMenu}
                 onCloseFamilyMenu={handleCloseFamiliaMenu}
                 onStartEditFamily={handleStartEditFamilia}
+                onDeleteFamily={handleDeleteFamilia}
+                isDeletingFamily={isDeletingFamilia}
                 onViewFamilyCiclos={onViewFamiliaCiclos}
                 idFamiliaHighlight={idFamiliaHighlight}
             />

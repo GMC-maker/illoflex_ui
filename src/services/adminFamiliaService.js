@@ -31,3 +31,11 @@ export async function updateAdminFamily(idFamilia, datosRecibidos) {
 
 	return response.data.datos;
 }
+
+export async function deleteAdminFamily(idFamilia) {
+	const response = await api.delete(`/admin/familias/${idFamilia}`, {
+		withCredentials: true,
+	});
+
+	return response.data.datos;
+}
