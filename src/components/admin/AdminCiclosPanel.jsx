@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, Stack, Typography } from "@mui/material";
-import { createAdminCiclo, getAdminCiclos, updateAdminCiclo } from "../../services/adminCicloService";
+import {
+    createAdminCiclo,
+    getAdminCiclos,
+    updateAdminCiclo,
+    deleteAdminCiclo
+} from "../../services/adminCicloService";
 import AdminCicloForm from "./AdminCicloForm";
 import AdminCicloGrid from "./AdminCicloGrid";
 
@@ -21,6 +26,7 @@ function AdminCiclosPanel({ selectedFamiliaForCiclos, onBackToFamilias }) {
     );
     const [isCreatingCiclo, setIsCreatingCiclo] = useState(false);
     const [isUpdatingCiclo, setIsUpdatingCiclo] = useState(false);
+    const [isDeletingCiclo, setIsDeletingCiclo] = useState(false);
     const [cicloFormError, setCicloFormError] = useState("");
     const [cicloFormSuccess, setCicloFormSuccess] = useState("");
     const [editingCiclo, setEditingCiclo] = useState(null);
@@ -64,6 +70,15 @@ function AdminCiclosPanel({ selectedFamiliaForCiclos, onBackToFamilias }) {
         return () => clearTimeout(timeoutId);
     }, [editingCiclo]);
 
+    const scrollToCicloForm = () => {
+        setTimeout(() => {
+            cicloFormRef.current?.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        }, 0);
+    };
+
     const handleCicloFormChange = event => {
         const { name, value } = event.target;
 
@@ -101,6 +116,41 @@ function AdminCiclosPanel({ selectedFamiliaForCiclos, onBackToFamilias }) {
         setCicloFormError("");
         setCicloFormSuccess("");
         handleCloseCicloMenu();
+    };
+
+    const handleDeleteCiclo = async () => {
+        if (!selectedCicloForMenu) {
+            return;
+        }
+
+        const confirmed = window.confirm(
+            `¿Seguro que quieres eliminar el ciclo "${selectedCicloForMenu.nombre}"?`
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        setCicloFormError("");
+        setCicloFormSuccess("");
+        setIsDeletingCiclo(true);
+
+        try {
+            await deleteAdminCiclo(selectedCicloForMenu.id_ciclo);
+            handleCloseCicloMenu();
+            setCicloFormSuccess("Ciclo formativo eliminado correctamente");
+            scrollToCicloForm();
+
+            setIsLoadingCiclos(true);
+            await loadCiclos();
+        } catch (error) {
+            setCicloFormError(
+                error?.response?.data?.mensaje || "No se pudo eliminar el ciclo formativo"
+            );
+            scrollToCicloForm();
+        } finally {
+            setIsDeletingCiclo(false);
+        }
     };
 
     const scrollToCicloCard = idCiclo => {
@@ -146,6 +196,7 @@ function AdminCiclosPanel({ selectedFamiliaForCiclos, onBackToFamilias }) {
                 await updateAdminCiclo(cicloId, cicloFormData);
 
                 setCicloFormSuccess("Ciclo formativo actualizado correctamente");
+                scrollToCicloForm();
                 setEditingCiclo(null);
                 setCicloFormData(buildInitialCicloFormData(selectedFamiliaForCiclos));
 
@@ -165,6 +216,7 @@ function AdminCiclosPanel({ selectedFamiliaForCiclos, onBackToFamilias }) {
                 setCicloFormError(
                     error?.response?.data?.mensaje || "No se pudo actualizar el ciclo formativo"
                 );
+                scrollToCicloForm();
             } finally {
                 setIsUpdatingCiclo(false);
             }
@@ -178,10 +230,12 @@ function AdminCiclosPanel({ selectedFamiliaForCiclos, onBackToFamilias }) {
             await createAdminCiclo(cicloFormData);
             setCicloFormData(buildInitialCicloFormData(selectedFamiliaForCiclos));
             setCicloFormSuccess("Ciclo formativo creado correctamente");
+            scrollToCicloForm();
             setIsLoadingCiclos(true);
             await loadCiclos();
         } catch (error) {
             setCicloFormError(error?.response?.data?.mensaje || "No se pudo crear el ciclo formativo");
+            scrollToCicloForm();
         } finally {
             setIsCreatingCiclo(false);
         }
@@ -243,6 +297,7 @@ function AdminCiclosPanel({ selectedFamiliaForCiclos, onBackToFamilias }) {
                 onOpenCicloMenu={handleOpenCicloMenu}
                 onCloseCicloMenu={handleCloseCicloMenu}
                 onStartEditCiclo={handleStartEditCiclo}
+                onDeleteCiclo={handleDeleteCiclo}
                 idCicloHighlight={idCicloHighlight}
             />
         </>

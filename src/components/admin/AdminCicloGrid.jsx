@@ -36,6 +36,8 @@ export default function AdminCicloGrid({
     onOpenCicloMenu,
     onCloseCicloMenu,
     onStartEditCiclo,
+    onDeleteCiclo,
+    isDeletingCiclo,
     idCicloHighlight
 }) {
     const ciclosOfSelectedFamily = selectedFamilyForCiclos
@@ -183,6 +185,9 @@ export default function AdminCicloGrid({
                     onClose={onCloseCicloMenu}
                 >
                     <MenuItem onClick={onStartEditCiclo}>Editar</MenuItem>
+                    <MenuItem onClick={onDeleteCiclo} disabled={isDeletingCiclo}>
+                        Eliminar
+                    </MenuItem>
                 </Menu>
             </Stack>
         </Paper>
