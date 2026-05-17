@@ -29,5 +29,15 @@ export async function updateAdminCiclo(idCiclo, datosRecibidos) {
 		},
 	);
 
+
+
+	return response.data.datos;
+}
+
+export async function deleteAdminCiclo(idCiclo) {
+	const response = await api.delete(`/admin/ciclos/${idCiclo}`, {
+		withCredentials: true,
+	});
+
 	return response.data.datos;
 }
