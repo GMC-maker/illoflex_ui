@@ -8,11 +8,11 @@ import axios from "axios";
 //timeout: evita que una petición se quede indefinidamente colgada
 
 const api = axios.create({
-	baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000/api",
-	headers: {
-		"Content-Type": "application/json",
-	},
-	timeout: 5000,
+    baseURL: import.meta.env.VITE_API_URL || "http://44.193.172.139:3000/api",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    timeout: 5000
 });
 
 export default api;
