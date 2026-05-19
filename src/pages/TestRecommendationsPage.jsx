@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Alert, Box, Button, Container, Paper, Stack, Typography } from "@mui/material";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 
@@ -33,6 +34,13 @@ export default function TestRecommendationsPage() {
     const location = useLocation();
     const result = location.state?.result || null;
     const recommendations = result?.recomendaciones || [];
+
+    useEffect(() => {
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+    }, []);
 
     function handleScrollToFamilia(familiaId) {
         const targetSection = document.getElementById(`familia-ciclos-${familiaId}`);
