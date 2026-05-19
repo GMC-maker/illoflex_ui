@@ -43,7 +43,9 @@ export default function TestRecommendationsPage() {
     }, []);
 
     function handleScrollToFamilia(familiaId) {
-        const targetSection = document.getElementById(`familia-ciclos-${familiaId}`);
+        const firstCycleTarget = document.getElementById(`familia-primer-ciclo-${familiaId}`);
+        const fallbackSection = document.getElementById(`familia-ciclos-${familiaId}`);
+        const targetSection = firstCycleTarget || fallbackSection;
 
         if (!targetSection) {
             return;
@@ -291,18 +293,24 @@ export default function TestRecommendationsPage() {
                                                     gap: 2
                                                 }}
                                             >
-                                                {ciclos.map(ciclo => {
+                                                {ciclos.map((ciclo, index) => {
                                                     const catalogUrl = getCatalogUrlByLevel(ciclo.nivel);
 
                                                     return (
                                                         <Box
                                                             key={ciclo.id_ciclo}
+                                                            id={
+                                                                index === 0
+                                                                    ? `familia-primer-ciclo-${familia.id_familia}`
+                                                                    : undefined
+                                                            }
                                                             sx={{
                                                                 p: 2,
                                                                 borderRadius: 2.5,
                                                                 border: "1px solid #dbe2f0",
                                                                 backgroundColor: "#f8fbff",
-                                                                height: "100%"
+                                                                height: "100%",
+                                                                scrollMarginTop: "96px"
                                                             }}
                                                         >
                                                             <Stack spacing={1} sx={{ height: "100%" }}>
