@@ -132,6 +132,26 @@ export default function MainLayout() {
 				<Outlet />
 			</Box>
 
+			<Box
+				component='footer'
+				sx={{
+					borderTop: "1px solid #dbe2f0",
+					backgroundColor: "rgba(255, 255, 255, 0.78)",
+					py: 2,
+				}}>
+				<Container maxWidth='lg'>
+					<Typography
+						variant='body2'
+						sx={{
+							textAlign: "center",
+							color: "#64748b",
+							fontSize: "0.9rem",
+						}}>
+						© 2026 IlloFlex · Designed by Gabriela Celano
+					</Typography>
+				</Container>
+			</Box>
+
 			<Menu
 				anchorEl={adminMenuAnchorEl}
 				open={Boolean(adminMenuAnchorEl)}
