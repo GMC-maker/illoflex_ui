@@ -408,7 +408,7 @@ export default function TestResultPage() {
                                         >
                                             {isSendingLink
                                                 ? "Generando enlace..."
-                                                : "Generar enlace temporal"}
+                                                : "Enviar resultados"}
                                         </Button>
                                     </Box>
 
